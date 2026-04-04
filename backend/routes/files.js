@@ -55,4 +55,23 @@ router.delete('/:id', requireAuth, async (req, res) => {
   res.json({ success: true })
 })
 
+router.get('/:id/download-url', requireAuth, async (req, res) => {
+  const { data: file, error } = await supabase
+    .from('files')
+    .select('*')
+    .eq('id', req.params.id)
+    .eq('owner_id', req.user.id)
+    .single()
+
+  if (error || !file) return res.status(404).json({ error: 'File not found' })
+
+  const { data: download, error: urlErr } = await supabase.storage
+    .from('encrypted-files')
+    .createSignedUrl(file.storage_path, 60)
+
+  if (urlErr) return res.status(500).json({ error: urlErr.message })
+
+  res.json({ signedUrl: download.signedUrl })
+})
+
 export default router

@@ -61,15 +61,16 @@ export default function Dashboard() {
     const pw = prompt(`Enter decryption password for "${file.name}"`)
     if (!pw) return
     try {
-      const { data: urlData } = await supabase.storage.from('encrypted-files').createSignedUrl(file.storage_path, 60)
-      const res = await fetch(urlData.signedUrl)
+      // Get signed URL from backend instead of direct Supabase call
+      const { data } = await api.get(`/api/files/${file.id}/download-url`)
+      const res = await fetch(data.signedUrl)
       const buf = await res.arrayBuffer()
       const blob = await decryptFile(buf, pw, file.iv, file.salt, file.mime_type)
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url; a.download = file.name; a.click()
       URL.revokeObjectURL(url)
-    } catch {
+    } catch (e) {
       alert('Decryption failed. Wrong password?')
     }
   }
@@ -168,7 +169,7 @@ export default function Dashboard() {
             </button>
           </div>
           <p className={`text-xs mt-2 ${d ? 'text-gray-500' : 'text-gray-400'}`}>
-            🔒 This password never leaves your browser — the server has zero knowledge of it.
+             This password never leaves your browser — the server has zero knowledge of it.
           </p>
         </div>
 
