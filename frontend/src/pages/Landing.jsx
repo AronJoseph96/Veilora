@@ -1,0 +1,299 @@
+import { useNavigate } from 'react-router-dom'
+
+export default function Landing() {
+  const navigate = useNavigate()
+
+  return (
+    <div className="dark bg-[#0e1322] text-[#dee1f7] font-[Inter] min-h-screen">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+        .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-panel { background: rgba(47,52,69,0.4); backdrop-filter: blur(20px); border: 1px solid rgba(145,143,161,0.2); }
+        .hero-glow { background: radial-gradient(circle at center, rgba(65,78,220,0.15) 0%, rgba(14,19,34,0) 70%); }
+        .button-gradient { background: linear-gradient(135deg, #bec2ff 0%, #414edc 100%); }
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+      `}</style>
+
+      {/* Navbar */}
+      <header className="fixed top-0 w-full z-50 backdrop-blur-xl border-b border-white/10 shadow-2xl" style={{background:'rgba(2,6,23,0.4)'}}>
+        <nav className="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined" style={{color:'#818cf8'}}>security</span>
+            <span className="text-2xl font-black tracking-tighter text-white">Veilora</span>
+          </div>
+          <div className="hidden md:flex items-center gap-8">
+            <a className="text-[#818cf8] font-bold border-b-2 border-indigo-500" href="#">Home</a>
+            <a className="text-slate-400 font-medium hover:text-white transition-colors" href="#">Features</a>
+            <a className="text-slate-400 font-medium hover:text-white transition-colors" href="#">Security</a>
+            <a className="text-slate-400 font-medium hover:text-white transition-colors" href="#">Documentation</a>
+          </div>
+          <button onClick={() => navigate('/login')}
+            className="button-gradient text-[#000da4] px-6 py-2 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity">
+            Start Now
+          </button>
+        </nav>
+      </header>
+
+      <main>
+        {/* Hero */}
+        <section className="relative min-h-screen flex flex-col items-center justify-center pt-32 pb-20 overflow-hidden">
+          <div className="absolute inset-0 hero-glow -z-10"></div>
+          <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full border" style={{background:'#25293a', borderColor:'rgba(70,69,85,0.3)'}}>
+                <span className="w-2 h-2 rounded-full bg-[#bec2ff] animate-pulse"></span>
+                <span className="text-sm text-[#bec2ff] font-medium">New: Quantum-Resistant Encryption</span>
+              </div>
+              <h1 className="text-6xl md:text-7xl font-black tracking-tight leading-none text-white">
+                Share Files With <br/><span className="text-[#bec2ff]">Zero Compromise</span>
+              </h1>
+              <p className="text-xl text-[#c7c4d8] font-medium leading-relaxed max-w-xl">
+                Veilora encrypts your files in your browser before upload. We never see your data. Ever. Your files. Your keys. Zero knowledge.
+              </p>
+              <div className="flex flex-wrap gap-4 pt-4">
+                <button onClick={() => navigate('/login')}
+                  className="button-gradient text-[#000da4] px-8 py-4 rounded-full font-bold text-lg shadow-xl hover:opacity-90 active:scale-95 transition-all">
+                  Start for Free
+                </button>
+                <button className="px-8 py-4 rounded-full font-bold text-lg hover:bg-white/5 transition-colors active:scale-95 text-[#dee1f7]"
+                  style={{background:'#2f3445'}}>
+                  See How It Works
+                </button>
+              </div>
+            </div>
+
+            {/* Mockup card */}
+            <div className="relative group">
+              <div className="glass-panel rounded-xl p-8 relative z-10 shadow-2xl">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
+                  </div>
+                  <span className="text-xs text-slate-500 font-mono">v-vault://secure-session</span>
+                </div>
+                <div className="border-2 border-dashed rounded-lg p-12 flex flex-col items-center justify-center text-center space-y-4"
+                  style={{borderColor:'rgba(70,69,85,0.5)', background:'rgba(9,14,28,0.5)'}}>
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{background:'rgba(65,78,220,0.2)'}}>
+                    <span className="material-symbols-outlined text-4xl text-[#bec2ff]" style={{fontVariationSettings:"'FILL' 1"}}>lock</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Drop files to encrypt</h3>
+                    <p className="text-sm text-[#c7c4d8]">Browser-side AES-256-GCM protection</p>
+                  </div>
+                </div>
+                <div className="mt-6 space-y-3">
+                  <div className="h-2 w-full rounded-full overflow-hidden" style={{background:'#2f3445'}}>
+                    <div className="h-full rounded-full bg-[#bec2ff]" style={{width:'67%'}}></div>
+                  </div>
+                  <div className="flex justify-between text-xs font-mono text-slate-400">
+                    <span>ENCRYPTING_CHUNKS...</span>
+                    <span>67%</span>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute -top-12 -right-12 w-64 h-64 rounded-full blur-3xl" style={{background:'rgba(99,102,241,0.1)'}}></div>
+              <div className="absolute -bottom-12 -left-12 w-64 h-64 rounded-full blur-3xl" style={{background:'rgba(190,194,255,0.1)'}}></div>
+            </div>
+          </div>
+        </section>
+
+        {/* Trust Bar */}
+        <section className="py-12 border-y border-white/5" style={{background:'#161b2b'}}>
+          <div className="max-w-7xl mx-auto px-8">
+            <div className="flex flex-wrap justify-between items-center gap-8 opacity-60 hover:opacity-100 transition-all duration-500">
+              {[
+                { icon: 'shield', label: 'AES-256-GCM Encryption' },
+                { icon: 'visibility_off', label: 'Zero Knowledge Architecture' },
+                { icon: 'code', label: 'Open Source' },
+                { icon: 'verified_user', label: 'GDPR Ready' },
+              ].map(({ icon, label }) => (
+                <div key={label} className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#bec2ff]">{icon}</span>
+                  <span className="font-bold tracking-wider text-sm uppercase">{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works */}
+        <section className="py-32 bg-slate-50 text-slate-900">
+          <div className="max-w-7xl mx-auto px-8">
+            <div className="text-center mb-20">
+              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Privacy by design, not by policy</h2>
+              <div className="h-1.5 w-24 mx-auto rounded-full bg-[#414edc]"></div>
+            </div>
+            <div className="grid md:grid-cols-3 gap-12 relative">
+              <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -z-10"></div>
+              {[
+                { icon: 'upload', step: '1. Upload', desc: 'Your browser generates a unique key and encrypts the file before it leaves your machine.' },
+                { icon: 'share', step: '2. Share', desc: 'Generate a secure link containing the decryption key in the hash fragment.' },
+                { icon: 'key', step: '3. Decrypt', desc: "The recipient's browser uses the key from the link to decrypt the file locally." },
+              ].map(({ icon, step, desc }) => (
+                <div key={step} className="flex flex-col items-center text-center space-y-6 bg-white p-10 rounded-xl shadow-xl shadow-slate-200/50">
+                  <div className="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center shadow-inner">
+                    <span className="material-symbols-outlined text-4xl text-[#414edc]">{icon}</span>
+                  </div>
+                  <h3 className="text-xl font-extrabold uppercase tracking-tight">{step}</h3>
+                  <p className="text-slate-600 font-medium">{desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Features Bento */}
+        <section className="py-32" style={{background:'#0e1322'}}>
+          <div className="max-w-7xl mx-auto px-8">
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Main card */}
+              <div className="md:col-span-2 glass-panel p-10 rounded-xl flex flex-col justify-between group overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-8 opacity-10 scale-150 group-hover:scale-[1.7] transition-transform">
+                  <span className="material-symbols-outlined text-[160px]">security</span>
+                </div>
+                <div className="relative z-10">
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-6" style={{background:'rgba(190,194,255,0.2)'}}>
+                    <span className="material-symbols-outlined text-[#bec2ff]">vpn_lock</span>
+                  </div>
+                  <h3 className="text-3xl font-extrabold text-white mb-4">End-to-End Encryption</h3>
+                  <p className="text-[#c7c4d8] text-lg leading-relaxed max-w-md">Every single bit is scrambled using AES-256 before it ever hits the wire. Only the intended recipient can unscramble it.</p>
+                </div>
+                <div className="w-full h-48 rounded-lg mt-8 border border-white/10 opacity-60 group-hover:opacity-100 transition-all duration-700"
+                  style={{background:'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)'}}></div>
+              </div>
+
+              {[
+                { icon: 'dns', title: 'Zero Knowledge Server', desc: 'We store only encrypted chunks. We have no keys, no passwords, and no way to read your data.' },
+                { icon: 'link', title: 'Secure Share Links', desc: 'Expiration dates, download limits, and optional passwords for every link you create.' },
+                { icon: 'person_off', title: 'No Account Needed', desc: 'Send files instantly without signing up. Your privacy is protected by default.' },
+                { icon: 'fact_check', title: 'File Integrity', desc: "Built-in checksums ensure the file haven't been tampered with during transit." },
+                { icon: 'fingerprint', title: 'Privacy First', desc: 'No trackers, no cookies, no analytics. Just pure, private file sharing.' },
+              ].map(({ icon, title, desc }) => (
+                <div key={title} className="p-8 rounded-xl border border-white/10 hover:border-[#bec2ff]/50 transition-colors"
+                  style={{background:'#1a1f2f'}}>
+                  <span className="material-symbols-outlined text-[#bec2ff] mb-4 block">{icon}</span>
+                  <h4 className="text-xl font-bold text-white mb-2">{title}</h4>
+                  <p className="text-[#c7c4d8] text-sm">{desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Security Deep Dive */}
+        <section className="py-32 relative overflow-hidden" style={{background:'#090e1c'}}>
+          <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-8">
+              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white">
+                Your password never <br/>leaves your device
+              </h2>
+              <ul className="space-y-6">
+                {[
+                  'Standard PBKDF2 key derivation happens locally in your browser.',
+                  'Keys are never sent to our servers in any form, encrypted or otherwise.',
+                  'Uses industry-standard Web Crypto API for hardware-accelerated security.',
+                ].map((text) => (
+                  <li key={text} className="flex items-start gap-4">
+                    <div className="mt-1 w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(190,194,255,0.2)'}}>
+                      <span className="material-symbols-outlined text-sm text-[#bec2ff]">check</span>
+                    </div>
+                    <p className="text-[#dee1f7] font-medium">{text}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Code block */}
+            <div className="bg-slate-900 rounded-xl overflow-hidden border border-white/5 shadow-2xl">
+              <div className="px-6 py-3 flex items-center justify-between border-b border-white/5" style={{background:'#2f3445'}}>
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+                  <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                  <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+                </div>
+                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">crypto_engine.js</span>
+              </div>
+              <div className="p-8 font-mono text-sm leading-relaxed overflow-x-auto">
+                <p className="text-indigo-400">async <span className="text-white">function</span> <span className="text-indigo-300">encryptFile</span>(fileData, masterKey) {'{'}</p>
+                <p className="pl-4 text-slate-500">// Derive 256-bit AES key locally</p>
+                <p className="pl-4 text-indigo-400"><span className="text-white">const</span> key = <span className="text-white">await</span> window.crypto.subtle.deriveKey(</p>
+                <p className="pl-8 text-indigo-400">{'{ name: '}<span className="text-emerald-400">"PBKDF2"</span>{', salt, iterations: '}<span className="text-orange-400">310000</span>{' },'}</p>
+                <p className="pl-8 text-indigo-400">{'masterKey, { name: '}<span className="text-emerald-400">"AES-GCM"</span>{', length: '}<span className="text-orange-400">256</span>{' },'}</p>
+                <p className="pl-8 text-indigo-400"><span className="text-white">false</span>{', ['}<span className="text-emerald-400">"encrypt"</span>{']'}</p>
+                <p className="pl-4 text-indigo-400">);</p>
+                <p className="pl-4 text-slate-500">// Encryption never touches our servers</p>
+                <p className="pl-4 text-indigo-400"><span className="text-white">return await</span> crypto.subtle.encrypt({'{ name: '}<span className="text-emerald-400">"AES-GCM"</span>{', iv },'} key, fileData);</p>
+                <p className="text-indigo-400">{'}'}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-32 relative" style={{background:'#0e1322'}}>
+          <div className="max-w-4xl mx-auto px-8 text-center space-y-10 relative z-10">
+            <h2 className="text-5xl md:text-6xl font-black tracking-tight text-white">Ready to share files the private way?</h2>
+            <p className="text-xl text-[#c7c4d8] font-medium">Join thousands of security-conscious professionals who trust Veilora for their sensitive data.</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <button onClick={() => navigate('/login')}
+                className="button-gradient text-[#000da4] px-10 py-5 rounded-full font-bold text-xl shadow-2xl hover:scale-105 transition-transform">
+                Create Free Account
+              </button>
+              <button className="border px-10 py-5 rounded-full font-bold text-xl hover:bg-white/5 transition-colors text-[#dee1f7]"
+                style={{borderColor:'rgba(70,69,85,0.3)'}}>
+                Contact Sales
+              </button>
+            </div>
+            <p className="text-sm text-slate-500">No credit card. No tracking. No compromise.</p>
+          </div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full -z-10 blur-[120px]"
+            style={{background:'rgba(190,194,255,0.2)'}}></div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-white/5 py-12 px-8" style={{background:'#090e1c'}}>
+        <div className="flex flex-col md:flex-row justify-between items-start gap-12 max-w-7xl mx-auto">
+          <div className="space-y-4 max-w-xs">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#818cf8]">security</span>
+              <span className="text-lg font-bold text-white">Veilora</span>
+            </div>
+            <p className="text-slate-500 text-sm font-medium leading-relaxed">
+              The sovereign vault for your digital assets. Privacy by default, security by mathematics.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-12">
+            {[
+              { title: 'Platform', links: ['Features', 'How it works', 'Pricing'] },
+              { title: 'Resources', links: ['Documentation', 'GitHub', 'Status'] },
+              { title: 'Legal', links: ['Privacy Policy', 'Terms of Service', 'Security Protocol'] },
+            ].map(({ title, links }) => (
+              <div key={title} className="space-y-4">
+                <h5 className="text-white font-bold text-sm uppercase tracking-widest">{title}</h5>
+                <ul className="space-y-2">
+                  {links.map(link => (
+                    <li key={link}><a href="#" className="text-slate-500 font-medium text-sm hover:text-indigo-300 transition-colors">{link}</a></li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-slate-500 text-sm font-medium">© 2025 Veilora. All rights reserved.</p>
+          <div className="flex gap-6">
+            {['public', 'alternate_email', 'hub'].map(icon => (
+              <a key={icon} href="#" className="text-slate-500 hover:text-white transition-colors">
+                <span className="material-symbols-outlined text-xl">{icon}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
