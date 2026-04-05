@@ -1,275 +1,355 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 
 export default function Landing() {
   const navigate = useNavigate()
+  const [activeSection, setActiveSection] = useState('hero')
+  const [scrolled, setScrolled] = useState(false)
 
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+      const sections = ['hero', 'howitworks', 'features', 'security', 'cta']
+      for (const id of sections) {
+        const el = document.getElementById(id)
+        if (el) {
+          const rect = el.getBoundingClientRect()
+          if (rect.top <= 100 && rect.bottom > 100) { setActiveSection(id); break }
+        }
+      }
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const navLinks = [
+    { label: 'Home', id: 'hero' },
+    { label: 'How It Works', id: 'howitworks' },
+    { label: 'Features', id: 'features' },
+    { label: 'Security', id: 'security' },
+    { label: 'Get Started', id: 'cta' },
+  ]
+
+  const isActive = (id) => {
+    if (id === 'hero') return activeSection === 'hero'
+    if (id === 'cta') return activeSection === 'cta'
+    return activeSection === id
+  }
+
   return (
-    <div className="dark bg-[#0e1322] text-[#dee1f7] font-[Inter] min-h-screen">
+    <div style={{fontFamily:'Inter,sans-serif', background:'#0a0d1a', color:'#dee1f7', minHeight:'100vh'}}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
-        .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-        .glass-panel { background: rgba(47,52,69,0.4); backdrop-filter: blur(20px); border: 1px solid rgba(145,143,161,0.2); }
-        .hero-glow { background: radial-gradient(circle at center, rgba(65,78,220,0.15) 0%, rgba(14,19,34,0) 70%); }
-        .button-gradient { background: linear-gradient(135deg, #bec2ff 0%, #414edc 100%); }
-        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
+        .btn-primary { background: linear-gradient(135deg, #7c83ff 0%, #4f46e5 100%); color: #fff; border: none; cursor: pointer; font-weight: 700; transition: all 0.3s ease; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(79,70,229,0.4); }
+        .btn-secondary { background: rgba(255,255,255,0.06); color: #dee1f7; border: 1px solid rgba(255,255,255,0.12); cursor: pointer; font-weight: 700; transition: all 0.3s ease; }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+        .feature-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); transition: all 0.35s ease; }
+        .feature-card:hover { background: rgba(124,131,255,0.08); border-color: rgba(124,131,255,0.3); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(79,70,229,0.15); }
+        .nav-link { position: relative; cursor: pointer; transition: color 0.2s; padding-bottom: 4px; background: none; border: none; font-size: 14px; font-weight: 500; }
+        .nav-link::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background: linear-gradient(90deg, #7c83ff, #4f46e5); border-radius: 2px; transition: width 0.3s ease; }
+        .nav-link.active { color: #a5b4fc; }
+        .nav-link.active::after { width: 100%; }
+        .nav-link:hover { color: #c7d2fe; }
+        .nav-link:hover::after { width: 100%; }
+        .fade-up { opacity: 0; transform: translateY(24px); animation: fadeUp 0.7s ease forwards; }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+        .pulse-dot { animation: pulseDot 2s ease-in-out infinite; }
+        @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.3)} }
+        .progress-bar { animation: progressFill 2.5s ease-out 0.8s both; }
+        @keyframes progressFill { from{width:0} to{width:67%} }
+        .float { animation: float 4s ease-in-out infinite; }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        .glow-orb { animation: glowPulse 4s ease-in-out infinite; }
+        @keyframes glowPulse { 0%,100%{opacity:0.15} 50%{opacity:0.3} }
+        .step-card { background: #fff; transition: all 0.3s ease; }
+        .step-card:hover { transform: translateY(-6px); box-shadow: 0 20px 60px rgba(79,70,229,0.15); }
+        .trust-item { transition: all 0.3s ease; }
+        .trust-item:hover { transform: translateY(-2px); opacity: 1 !important; }
+        .testimonial-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); transition: all 0.3s ease; }
+        .testimonial-card:hover { background: rgba(124,131,255,0.06); border-color: rgba(124,131,255,0.2); transform: translateY(-4px); }
+        .logo-img { filter: brightness(0) invert(1); transition: all 0.3s ease; }
+        .logo-img:hover { filter: brightness(0) invert(1) drop-shadow(0 0 8px rgba(165,180,252,0.8)); }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
       `}</style>
 
       {/* Navbar */}
-      <header className="fixed top-0 w-full z-50 backdrop-blur-xl border-b border-white/10 shadow-2xl" style={{background:'rgba(2,6,23,0.4)'}}>
-        <nav className="flex justify-between items-center px-8 py-3 max-w-7xl mx-auto">
-          {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <img src="/logo.png" alt="Veilora" className="h-9 w-auto rounded-lg" />
-            <span className="text-2xl font-black tracking-tighter text-white">Veilora</span>
+      <header style={{
+        position:'fixed', top:0, width:'100%', zIndex:50,
+        background: scrolled ? 'rgba(10,13,26,0.85)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(20px)' : 'none',
+        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
+        transition: 'all 0.4s ease'
+      }}>
+        <nav style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 48px', maxWidth:1280, margin:'0 auto'}}>
+          <div style={{display:'flex', alignItems:'center', gap:10, cursor:'pointer'}}
+            onClick={() => { scrollTo('hero'); setActiveSection('hero') }}>
+            <img src="/logo.jpeg" alt="Veilora" className="logo-img" style={{height:36, width:'auto'}} />
+            <span style={{fontSize:22, fontWeight:900, color:'#fff', letterSpacing:'-0.5px'}}>Veilora</span>
           </div>
 
-          {/* Nav links */}
-          <div className="hidden md:flex items-center gap-8">
-            {[
-              { label: 'Home', id: null },
-              { label: 'How It Works', id: 'howitworks' },
-              { label: 'Features', id: 'features' },
-              { label: 'Security', id: 'security' },
-              { label: 'Get Started', id: 'cta' },
-            ].map(({ label, id }) => (
-              <a key={label}
-                className="font-medium hover:text-white transition-colors cursor-pointer text-slate-400 hover:text-[#bec2ff] text-sm"
-                onClick={() => id ? scrollTo(id) : window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <div style={{display:'flex', alignItems:'center', gap:32}}>
+            {navLinks.map(({ label, id }) => (
+              <button key={id}
+                className={`nav-link ${isActive(id) ? 'active' : ''}`}
+                style={{color: isActive(id) ? '#a5b4fc' : '#94a3b8', fontFamily:'Inter,sans-serif'}}
+                onClick={() => { scrollTo(id); setActiveSection(id) }}>
                 {label}
-              </a>
+              </button>
             ))}
           </div>
 
-          <button onClick={() => navigate('/login')}
-            className="button-gradient text-[#000da4] px-6 py-2 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity text-sm">
+          <button className="btn-primary" onClick={() => navigate('/login')}
+            style={{padding:'10px 24px', borderRadius:999, fontSize:14, fontFamily:'Inter,sans-serif'}}>
             Start Now
           </button>
         </nav>
       </header>
 
       <main>
-        {/* Hero */}
-        <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center pt-32 pb-20 overflow-hidden">
-          <div className="absolute inset-0 hero-glow -z-10"></div>
-          <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full border" style={{background:'#25293a', borderColor:'rgba(70,69,85,0.3)'}}>
-                <span className="w-2 h-2 rounded-full bg-[#bec2ff] animate-pulse"></span>
-                <span className="text-sm text-[#bec2ff] font-medium">New: Quantum-Resistant Encryption</span>
+        {/* Hero — uses veilorabg as background */}
+        <section id="hero" style={{
+          position:'relative', minHeight:'100vh',
+          display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+          paddingTop:120, paddingBottom:80, overflow:'hidden'
+        }}>
+          {/* BG image */}
+          <div style={{
+            position:'absolute', inset:0, zIndex:0,
+            backgroundImage:'url(/veilorabg.jpeg)',
+            backgroundSize:'cover', backgroundPosition:'center',
+            opacity:0.18
+          }}/>
+          {/* Gradient overlay */}
+          <div style={{position:'absolute', inset:0, zIndex:1, background:'radial-gradient(ellipse at 50% 40%, rgba(79,70,229,0.12) 0%, transparent 70%)'}}/>
+          <div className="glow-orb" style={{position:'absolute', top:'20%', left:'10%', width:400, height:400, borderRadius:'50%', background:'rgba(79,70,229,0.08)', filter:'blur(80px)', zIndex:1}}/>
+          <div className="glow-orb" style={{position:'absolute', bottom:'20%', right:'10%', width:300, height:300, borderRadius:'50%', background:'rgba(124,131,255,0.06)', filter:'blur(60px)', zIndex:1, animationDelay:'2s'}}/>
+
+          <div style={{position:'relative', zIndex:2, maxWidth:1280, margin:'0 auto', padding:'0 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:64, alignItems:'center', width:'100%'}}>
+            <div>
+              <div className="fade-up delay-1" style={{display:'inline-flex', alignItems:'center', gap:8, padding:'6px 16px', borderRadius:999, background:'rgba(124,131,255,0.1)', border:'1px solid rgba(124,131,255,0.2)', marginBottom:28}}>
+                <span className="pulse-dot" style={{width:7, height:7, borderRadius:'50%', background:'#818cf8', display:'inline-block'}}/>
+                <span style={{fontSize:13, color:'#a5b4fc', fontWeight:500}}>New: Quantum-Resistant Encryption</span>
               </div>
-              <h1 className="text-6xl md:text-7xl font-black tracking-tight leading-none text-white">
-                Share Files With <br/><span className="text-[#bec2ff]">Zero Compromise</span>
+              <h1 className="fade-up delay-2" style={{fontSize:72, fontWeight:900, lineHeight:1.05, letterSpacing:'-2px', color:'#fff', marginBottom:24}}>
+                Share Files With <br/><span style={{color:'#818cf8'}}>Zero Compromise</span>
               </h1>
-              <p className="text-xl text-[#c7c4d8] font-medium leading-relaxed max-w-xl">
+              <p className="fade-up delay-3" style={{fontSize:18, color:'#94a3b8', lineHeight:1.7, maxWidth:480, marginBottom:36}}>
                 Veilora encrypts your files in your browser before upload. We never see your data. Ever. Your files. Your keys. Zero knowledge.
               </p>
-              <div className="flex flex-wrap gap-4 pt-4">
-                <button onClick={() => navigate('/login')}
-                  className="button-gradient text-[#000da4] px-8 py-4 rounded-full font-bold text-lg shadow-xl hover:opacity-90 active:scale-95 transition-all">
+              <div className="fade-up delay-4" style={{display:'flex', gap:16, flexWrap:'wrap'}}>
+                <button className="btn-primary" onClick={() => navigate('/login')}
+                  style={{padding:'14px 32px', borderRadius:999, fontSize:16, fontFamily:'Inter,sans-serif'}}>
                   Start for Free
                 </button>
-                <button onClick={() => scrollTo('howitworks')}
-                  className="px-8 py-4 rounded-full font-bold text-lg hover:bg-white/5 transition-colors active:scale-95 text-[#dee1f7]"
-                  style={{background:'#2f3445'}}>
+                <button className="btn-secondary" onClick={() => scrollTo('howitworks')}
+                  style={{padding:'14px 32px', borderRadius:999, fontSize:16, fontFamily:'Inter,sans-serif'}}>
                   See How It Works
                 </button>
               </div>
             </div>
 
-            {/* Mockup card */}
-            <div className="relative group">
-              <div className="glass-panel rounded-xl p-8 relative z-10 shadow-2xl">
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
+            {/* Mockup */}
+            <div className="float fade-up delay-5">
+              <div className="glass" style={{borderRadius:16, padding:28, boxShadow:'0 24px 80px rgba(0,0,0,0.4)'}}>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24}}>
+                  <div style={{display:'flex', gap:6}}>
+                    <div style={{width:11, height:11, borderRadius:'50%', background:'rgba(255,95,86,0.7)'}}/>
+                    <div style={{width:11, height:11, borderRadius:'50%', background:'rgba(255,189,46,0.7)'}}/>
+                    <div style={{width:11, height:11, borderRadius:'50%', background:'rgba(39,201,63,0.7)'}}/>
                   </div>
-                  <span className="text-xs text-slate-500 font-mono">secure-session</span>
+                  <span style={{fontSize:11, color:'#475569', fontFamily:'monospace'}}>secure-session</span>
                 </div>
-                <div className="border-2 border-dashed rounded-lg p-12 flex flex-col items-center justify-center text-center space-y-4"
-                  style={{borderColor:'rgba(70,69,85,0.5)', background:'rgba(9,14,28,0.5)'}}>
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{background:'rgba(65,78,220,0.2)'}}>
-                    <span className="material-symbols-outlined text-4xl text-[#bec2ff]" style={{fontVariationSettings:"'FILL' 1"}}>lock</span>
+                <div style={{border:'2px dashed rgba(124,131,255,0.25)', borderRadius:12, padding:'48px 24px', display:'flex', flexDirection:'column', alignItems:'center', gap:16, background:'rgba(0,0,0,0.3)'}}>
+                  <div style={{width:60, height:60, borderRadius:'50%', background:'rgba(79,70,229,0.25)', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                    <span className="material-symbols-outlined" style={{fontSize:32, color:'#818cf8', fontVariationSettings:"'FILL' 1"}}>lock</span>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-white">Drop files to encrypt</h3>
-                    <p className="text-sm text-[#c7c4d8]">Browser-side AES-256-GCM protection</p>
+                  <div style={{textAlign:'center'}}>
+                    <p style={{fontWeight:700, color:'#fff', marginBottom:4}}>Drop files to encrypt</p>
+                    <p style={{fontSize:13, color:'#64748b'}}>Browser-side AES-256-GCM protection</p>
                   </div>
                 </div>
-                <div className="mt-6 space-y-3">
-                  <div className="h-2 w-full rounded-full overflow-hidden" style={{background:'#2f3445'}}>
-                    <div className="h-full rounded-full bg-[#bec2ff]" style={{width:'67%'}}></div>
+                <div style={{marginTop:20}}>
+                  <div style={{height:6, background:'rgba(255,255,255,0.06)', borderRadius:999, overflow:'hidden', marginBottom:8}}>
+                    <div className="progress-bar" style={{height:'100%', background:'linear-gradient(90deg,#818cf8,#4f46e5)', borderRadius:999, width:0}}/>
                   </div>
-                  <div className="flex justify-between text-xs font-mono text-slate-400">
-                    <span>ENCRYPTING_CHUNKS...</span>
-                    <span>67%</span>
+                  <div style={{display:'flex', justifyContent:'space-between', fontSize:11, color:'#475569', fontFamily:'monospace'}}>
+                    <span>ENCRYPTING_CHUNKS...</span><span>67%</span>
                   </div>
                 </div>
               </div>
-              <div className="absolute -top-12 -right-12 w-64 h-64 rounded-full blur-3xl" style={{background:'rgba(99,102,241,0.1)'}}></div>
-              <div className="absolute -bottom-12 -left-12 w-64 h-64 rounded-full blur-3xl" style={{background:'rgba(190,194,255,0.1)'}}></div>
             </div>
           </div>
         </section>
 
         {/* Trust Bar */}
-        <section className="py-12 border-y border-white/5" style={{background:'#161b2b'}}>
-          <div className="max-w-7xl mx-auto px-8">
-            <div className="flex flex-wrap justify-between items-center gap-8 opacity-60 hover:opacity-100 transition-all duration-500">
-              {[
-                { icon: 'shield', label: 'AES-256-GCM Encryption' },
-                { icon: 'visibility_off', label: 'Zero Knowledge Architecture' },
-                { icon: 'code', label: 'Open Source' },
-                { icon: 'verified_user', label: 'GDPR Ready' },
-              ].map(({ icon, label }) => (
-                <div key={label} className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#bec2ff]">{icon}</span>
-                  <span className="font-bold tracking-wider text-sm uppercase">{label}</span>
-                </div>
-              ))}
-            </div>
+        <section style={{padding:'28px 0', background:'rgba(255,255,255,0.02)', borderTop:'1px solid rgba(255,255,255,0.05)', borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+          <div style={{maxWidth:1280, margin:'0 auto', padding:'0 48px', display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:24}}>
+            {[
+              { icon:'shield', label:'AES-256-GCM Encryption' },
+              { icon:'visibility_off', label:'Zero Knowledge Architecture' },
+              { icon:'code', label:'Open Source' },
+              { icon:'verified_user', label:'GDPR Ready' },
+            ].map(({ icon, label }) => (
+              <div key={label} className="trust-item" style={{display:'flex', alignItems:'center', gap:8, opacity:0.5}}>
+                <span className="material-symbols-outlined" style={{color:'#818cf8', fontSize:20}}>{icon}</span>
+                <span style={{fontSize:13, fontWeight:600, letterSpacing:'0.05em', textTransform:'uppercase', color:'#94a3b8'}}>{label}</span>
+              </div>
+            ))}
           </div>
         </section>
 
         {/* How It Works */}
-        <section id="howitworks" className="py-32 bg-slate-50 text-slate-900">
-          <div className="max-w-7xl mx-auto px-8">
-            <div className="text-center mb-20">
-              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Privacy by design, not by policy</h2>
-              <div className="h-1.5 w-24 mx-auto rounded-full bg-[#414edc]"></div>
+        <section id="howitworks" style={{padding:'112px 0', background:'#f8fafc', color:'#0f172a'}}>
+          <div style={{maxWidth:1280, margin:'0 auto', padding:'0 48px'}}>
+            <div style={{textAlign:'center', marginBottom:72}}>
+              <h2 style={{fontSize:48, fontWeight:800, letterSpacing:'-1.5px', marginBottom:16}}>Privacy by design, not by policy</h2>
+              <div style={{height:4, width:80, background:'linear-gradient(90deg,#818cf8,#4f46e5)', borderRadius:999, margin:'0 auto'}}/>
             </div>
-            <div className="grid md:grid-cols-3 gap-12 relative">
-              <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -z-10"></div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:32, position:'relative'}}>
+              <div style={{position:'absolute', top:'50%', left:0, width:'100%', height:1, background:'#e2e8f0', zIndex:0}}/>
               {[
-                { icon: 'upload', step: '1. Upload', desc: 'Your browser encrypts the file with AES-256-GCM before it ever leaves your machine.' },
-                { icon: 'share', step: '2. Share', desc: 'Generate a secure link with optional expiry. Share the password separately for full zero-knowledge.' },
-                { icon: 'key', step: '3. Decrypt', desc: "The recipient enters the password and their browser decrypts the file locally. Server sees nothing." },
+                { icon:'upload', step:'1. Upload', desc:'Your browser encrypts the file with AES-256-GCM before it ever leaves your machine.' },
+                { icon:'share', step:'2. Share', desc:'Generate a secure link with optional expiry. Share the password separately for full zero-knowledge.' },
+                { icon:'key', step:'3. Decrypt', desc:"The recipient enters the password and their browser decrypts the file locally. Server sees nothing." },
               ].map(({ icon, step, desc }) => (
-                <div key={step} className="flex flex-col items-center text-center space-y-6 bg-white p-10 rounded-xl shadow-xl shadow-slate-200/50">
-                  <div className="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center shadow-inner">
-                    <span className="material-symbols-outlined text-4xl text-[#414edc]">{icon}</span>
+                <div key={step} className="step-card" style={{borderRadius:16, padding:40, display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', gap:20, position:'relative', zIndex:1, boxShadow:'0 4px 24px rgba(0,0,0,0.06)'}}>
+                  <div style={{width:72, height:72, borderRadius:'50%', background:'#eef2ff', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                    <span className="material-symbols-outlined" style={{fontSize:36, color:'#4f46e5'}}>{icon}</span>
                   </div>
-                  <h3 className="text-xl font-extrabold uppercase tracking-tight">{step}</h3>
-                  <p className="text-slate-600 font-medium">{desc}</p>
+                  <h3 style={{fontSize:18, fontWeight:800, textTransform:'uppercase', letterSpacing:'0.05em'}}>{step}</h3>
+                  <p style={{color:'#64748b', lineHeight:1.7, fontWeight:500}}>{desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Features Bento */}
-        <section id="features" className="py-32" style={{background:'#0e1322'}}>
-          <div className="max-w-7xl mx-auto px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-extrabold text-white mb-4">Everything you need for secure sharing</h2>
-              <div className="h-1.5 w-24 mx-auto rounded-full bg-[#414edc]"></div>
+        {/* Features */}
+        <section id="features" style={{padding:'112px 0', background:'#0a0d1a'}}>
+          <div style={{maxWidth:1280, margin:'0 auto', padding:'0 48px'}}>
+            <div style={{textAlign:'center', marginBottom:56}}>
+              <h2 style={{fontSize:44, fontWeight:800, color:'#fff', letterSpacing:'-1px', marginBottom:16}}>Everything you need for secure sharing</h2>
+              <div style={{height:4, width:80, background:'linear-gradient(90deg,#818cf8,#4f46e5)', borderRadius:999, margin:'0 auto'}}/>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="md:col-span-2 glass-panel p-10 rounded-xl flex flex-col justify-between group overflow-hidden relative">
-                <div className="absolute top-0 right-0 p-8 opacity-10 scale-150 group-hover:scale-[1.7] transition-transform">
-                  <span className="material-symbols-outlined text-[160px]">security</span>
+            <div style={{display:'grid', gridTemplateColumns:'2fr 1fr', gap:20, marginBottom:20}}>
+              {/* Main big card */}
+              <div className="feature-card" style={{borderRadius:16, padding:40, position:'relative', overflow:'hidden'}}>
+                <div style={{position:'absolute', top:0, right:0, padding:24, opacity:0.06, fontSize:160, lineHeight:1}}>
+                  <span className="material-symbols-outlined" style={{fontSize:160}}>security</span>
                 </div>
-                <div className="relative z-10">
-                  <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-6" style={{background:'rgba(190,194,255,0.2)'}}>
-                    <span className="material-symbols-outlined text-[#bec2ff]">vpn_lock</span>
-                  </div>
-                  <h3 className="text-3xl font-extrabold text-white mb-4">End-to-End Encryption</h3>
-                  <p className="text-[#c7c4d8] text-lg leading-relaxed max-w-md">Every single bit is scrambled using AES-256-GCM before it ever hits the wire. Only the intended recipient with the correct password can unscramble it.</p>
+                <div style={{width:44, height:44, borderRadius:10, background:'rgba(124,131,255,0.15)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:20}}>
+                  <span className="material-symbols-outlined" style={{color:'#818cf8'}}>vpn_lock</span>
                 </div>
-                <div className="w-full h-48 rounded-lg mt-8 border border-white/10 opacity-60 group-hover:opacity-100 transition-all duration-700"
-                  style={{background:'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)'}}></div>
+                <h3 style={{fontSize:28, fontWeight:800, color:'#fff', marginBottom:12}}>End-to-End Encryption</h3>
+                <p style={{color:'#64748b', fontSize:16, lineHeight:1.7, maxWidth:380}}>Every single bit is scrambled using AES-256-GCM before it ever hits the wire. Only the intended recipient with the correct password can unscramble it.</p>
+                <div style={{marginTop:28, height:160, borderRadius:12, background:'linear-gradient(135deg,#1e1b4b,#312e81,#1e1b4b)', border:'1px solid rgba(255,255,255,0.06)', opacity:0.7}}/>
               </div>
-
+              <div className="feature-card" style={{borderRadius:16, padding:32}}>
+                <span className="material-symbols-outlined" style={{color:'#818cf8', fontSize:24, marginBottom:14, display:'block'}}>dns</span>
+                <h4 style={{fontSize:18, fontWeight:700, color:'#fff', marginBottom:8}}>Zero Knowledge Server</h4>
+                <p style={{color:'#64748b', fontSize:14, lineHeight:1.7}}>We store only encrypted blobs. No keys, no passwords, no way to read your data. Ever.</p>
+              </div>
+            </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:20}}>
               {[
-                { icon: 'dns', title: 'Zero Knowledge Server', desc: 'We store only encrypted blobs. No keys, no passwords, no way to read your data. Ever.' },
-                { icon: 'link', title: 'Secure Share Links', desc: 'Set expiration times and revoke access anytime. Links are worthless without the password.' },
-                { icon: 'fact_check', title: 'File Integrity', desc: 'AES-GCM built-in authentication detects any tampering before decryption completes.' },
-                { icon: 'fingerprint', title: 'Your Keys Only', desc: 'PBKDF2 key derivation runs in your browser. Your password is never transmitted anywhere.' },
+                { icon:'link', title:'Secure Share Links', desc:'Set expiry times and revoke access anytime. Links are worthless without the password.' },
+                { icon:'toggle_on', title:'Privacy First Toggle', desc:'Zero telemetry, no cookies, no analytics. Every privacy setting is on by default.' },
+                { icon:'fact_check', title:'File Integrity', desc:'AES-GCM authentication detects any tampering before decryption completes.' },
+                { icon:'fingerprint', title:'Your Keys Only', desc:'PBKDF2 key derivation runs in your browser. Your password never leaves your device.' },
               ].map(({ icon, title, desc }) => (
-                <div key={title} className="p-8 rounded-xl border border-white/10 hover:border-[#bec2ff]/50 transition-colors"
-                  style={{background:'#1a1f2f'}}>
-                  <span className="material-symbols-outlined text-[#bec2ff] mb-4 block">{icon}</span>
-                  <h4 className="text-xl font-bold text-white mb-2">{title}</h4>
-                  <p className="text-[#c7c4d8] text-sm">{desc}</p>
+                <div key={title} className="feature-card" style={{borderRadius:16, padding:28}}>
+                  <span className="material-symbols-outlined" style={{color:'#818cf8', fontSize:22, marginBottom:12, display:'block'}}>{icon}</span>
+                  <h4 style={{fontSize:16, fontWeight:700, color:'#fff', marginBottom:6}}>{title}</h4>
+                  <p style={{color:'#64748b', fontSize:13, lineHeight:1.7}}>{desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Security Deep Dive */}
-        <section id="security" className="py-32 relative overflow-hidden" style={{background:'#090e1c'}}>
-          <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
-              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white">
+        {/* Security */}
+        <section id="security" style={{padding:'112px 0', background:'#060810', position:'relative', overflow:'hidden'}}>
+          <div className="glow-orb" style={{position:'absolute', top:'30%', right:'5%', width:350, height:350, borderRadius:'50%', background:'rgba(79,70,229,0.06)', filter:'blur(80px)'}}/>
+          <div style={{maxWidth:1280, margin:'0 auto', padding:'0 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:80, alignItems:'center', position:'relative', zIndex:1}}>
+            <div>
+              <h2 style={{fontSize:48, fontWeight:800, color:'#fff', letterSpacing:'-1.5px', lineHeight:1.1, marginBottom:36}}>
                 Your password never <br/>leaves your device
               </h2>
-              <ul className="space-y-6">
+              <ul style={{listStyle:'none', display:'flex', flexDirection:'column', gap:20}}>
                 {[
                   'PBKDF2 key derivation with 310,000 iterations happens entirely in your browser.',
                   'Keys are never sent to our servers in any form — encrypted or otherwise.',
                   'Uses the browser-native Web Crypto API for hardware-accelerated AES-256-GCM.',
                   'Each file gets a unique random salt and IV — identical files produce different ciphertext.',
                 ].map((text) => (
-                  <li key={text} className="flex items-start gap-4">
-                    <div className="mt-1 w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(190,194,255,0.2)'}}>
-                      <span className="material-symbols-outlined text-sm text-[#bec2ff]">check</span>
+                  <li key={text} style={{display:'flex', gap:14, alignItems:'flex-start'}}>
+                    <div style={{marginTop:3, width:22, height:22, borderRadius:'50%', background:'rgba(124,131,255,0.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}>
+                      <span className="material-symbols-outlined" style={{fontSize:14, color:'#818cf8'}}>check</span>
                     </div>
-                    <p className="text-[#dee1f7] font-medium">{text}</p>
+                    <p style={{color:'#94a3b8', lineHeight:1.7, fontWeight:500}}>{text}</p>
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="bg-slate-900 rounded-xl overflow-hidden border border-white/5 shadow-2xl">
-              <div className="px-6 py-3 flex items-center justify-between border-b border-white/5" style={{background:'#2f3445'}}>
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
-                  <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
-                  <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+            {/* Code block */}
+            <div style={{borderRadius:16, overflow:'hidden', border:'1px solid rgba(255,255,255,0.06)', boxShadow:'0 24px 80px rgba(0,0,0,0.5)'}}>
+              <div style={{background:'#1e2133', padding:'12px 20px', display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                <div style={{display:'flex', gap:6}}>
+                  <div style={{width:11, height:11, borderRadius:'50%', background:'#ff5f56'}}/>
+                  <div style={{width:11, height:11, borderRadius:'50%', background:'#ffbd2e'}}/>
+                  <div style={{width:11, height:11, borderRadius:'50%', background:'#27c93f'}}/>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">crypto_engine.js</span>
+                <span style={{fontSize:10, fontFamily:'monospace', color:'#475569', textTransform:'uppercase', letterSpacing:'0.1em'}}>crypto_engine.js</span>
               </div>
-              <div className="p-8 font-mono text-sm leading-relaxed overflow-x-auto">
-                <p className="text-indigo-400">async <span className="text-white">function</span> <span className="text-indigo-300">encryptFile</span>(fileData, masterKey) {'{'}</p>
-                <p className="pl-4 text-slate-500">// Derive 256-bit AES key locally</p>
-                <p className="pl-4 text-indigo-400"><span className="text-white">const</span> key = <span className="text-white">await</span> window.crypto.subtle.deriveKey(</p>
-                <p className="pl-8 text-indigo-400">{'{ name: '}<span className="text-emerald-400">"PBKDF2"</span>{', salt, iterations: '}<span className="text-orange-400">310000</span>{' },'}</p>
-                <p className="pl-8 text-indigo-400">{'masterKey, { name: '}<span className="text-emerald-400">"AES-GCM"</span>{', length: '}<span className="text-orange-400">256</span>{' },'}</p>
-                <p className="pl-8 text-indigo-400"><span className="text-white">false</span>{', ['}<span className="text-emerald-400">"encrypt"</span>{']'}</p>
-                <p className="pl-4 text-indigo-400">);</p>
-                <p className="pl-4 text-slate-500">// Encryption never touches our servers</p>
-                <p className="pl-4 text-indigo-400"><span className="text-white">return await</span> crypto.subtle.encrypt({'{ name: '}<span className="text-emerald-400">"AES-GCM"</span>{', iv },'} key, fileData);</p>
-                <p className="text-indigo-400">{'}'}</p>
+              <div style={{padding:28, fontFamily:'monospace', fontSize:13, lineHeight:1.8, background:'#0d1117', overflowX:'auto'}}>
+                <p style={{color:'#7c83ff'}}>async <span style={{color:'#fff'}}>function</span> <span style={{color:'#a5b4fc'}}>encryptFile</span>(fileData, masterKey) {'{'}</p>
+                <p style={{color:'#475569', paddingLeft:16}}>// Derive 256-bit AES key locally</p>
+                <p style={{color:'#7c83ff', paddingLeft:16}}><span style={{color:'#fff'}}>const</span> key = <span style={{color:'#fff'}}>await</span> window.crypto.subtle.deriveKey(</p>
+                <p style={{color:'#7c83ff', paddingLeft:32}}>{'{ name: '}<span style={{color:'#34d399'}}>"PBKDF2"</span>{', salt, iterations: '}<span style={{color:'#fb923c'}}>310000</span>{' },'}</p>
+                <p style={{color:'#7c83ff', paddingLeft:32}}>{'masterKey, { name: '}<span style={{color:'#34d399'}}>"AES-GCM"</span>{', length: '}<span style={{color:'#fb923c'}}>256</span>{' },'}</p>
+                <p style={{color:'#7c83ff', paddingLeft:32}}><span style={{color:'#fff'}}>false</span>{', ['}<span style={{color:'#34d399'}}>"encrypt"</span>{']'}</p>
+                <p style={{color:'#7c83ff', paddingLeft:16}}>);</p>
+                <p style={{color:'#475569', paddingLeft:16}}>// Encryption never touches our servers</p>
+                <p style={{color:'#7c83ff', paddingLeft:16}}><span style={{color:'#fff'}}>return await</span> crypto.subtle.encrypt({'{ name: '}<span style={{color:'#34d399'}}>"AES-GCM"</span>{', iv },'} key, fileData);</p>
+                <p style={{color:'#7c83ff'}}>{'}'}</p>
               </div>
             </div>
           </div>
         </section>
 
         {/* Testimonials */}
-        <section className="py-32" style={{background:'#0e1322'}}>
-          <div className="max-w-7xl mx-auto px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-extrabold text-white mb-4">Trusted by security professionals</h2>
-              <div className="h-1.5 w-24 mx-auto rounded-full bg-[#414edc]"></div>
+        <section style={{padding:'112px 0', background:'#0a0d1a'}}>
+          <div style={{maxWidth:1280, margin:'0 auto', padding:'0 48px'}}>
+            <div style={{textAlign:'center', marginBottom:56}}>
+              <h2 style={{fontSize:44, fontWeight:800, color:'#fff', letterSpacing:'-1px', marginBottom:16}}>Trusted by security professionals</h2>
+              <div style={{height:4, width:80, background:'linear-gradient(90deg,#818cf8,#4f46e5)', borderRadius:999, margin:'0 auto'}}/>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:24}}>
               {[
-                { quote: "Finally a file sharing tool that actually practices what it preaches. The zero-knowledge model is real — I verified it myself.", name: "Alex R.", role: "Penetration Tester" },
-                { quote: "We switched our entire team to Veilora for sharing client documents. The encryption happens before upload — that's the only way I trust cloud storage.", name: "Priya M.", role: "CISO, FinTech Startup" },
-                { quote: "Simple enough for non-technical users, strong enough for security engineers. That balance is incredibly hard to achieve.", name: "Jordan K.", role: "Security Engineer" },
+                { quote:"Finally a file sharing tool that actually practices what it preaches. The zero-knowledge model is real — I verified it myself.", name:"Alex R.", role:"Penetration Tester" },
+                { quote:"We switched our entire team to Veilora for client documents. Encryption before upload — that's the only way I trust cloud storage.", name:"Priya M.", role:"CISO, FinTech Startup" },
+                { quote:"Simple enough for non-technical users, strong enough for security engineers. That balance is incredibly hard to achieve.", name:"Jordan K.", role:"Security Engineer" },
               ].map(({ quote, name, role }) => (
-                <div key={name} className="glass-panel p-8 rounded-xl flex flex-col gap-6">
-                  <div className="flex gap-1">
-                    {[...Array(5)].map((_, i) => <span key={i} className="text-[#bec2ff] text-lg">★</span>)}
+                <div key={name} className="testimonial-card" style={{borderRadius:16, padding:32, display:'flex', flexDirection:'column', gap:20}}>
+                  <div style={{display:'flex', gap:4}}>
+                    {[...Array(5)].map((_,i) => <span key={i} style={{color:'#818cf8', fontSize:16}}>★</span>)}
                   </div>
-                  <p className="text-[#c7c4d8] leading-relaxed flex-1">"{quote}"</p>
+                  <p style={{color:'#94a3b8', lineHeight:1.7, flex:1}}>"{quote}"</p>
                   <div>
-                    <p className="text-white font-bold">{name}</p>
-                    <p className="text-slate-500 text-sm">{role}</p>
+                    <p style={{color:'#fff', fontWeight:700}}>{name}</p>
+                    <p style={{color:'#475569', fontSize:13}}>{role}</p>
                   </div>
                 </div>
               ))}
@@ -278,99 +358,86 @@ export default function Landing() {
         </section>
 
         {/* CTA */}
-        <section id="cta" className="py-32 relative" style={{background:'#090e1c'}}>
-          <div className="max-w-4xl mx-auto px-8 text-center space-y-10 relative z-10">
-            <h2 className="text-5xl md:text-6xl font-black tracking-tight text-white">Ready to share files the private way?</h2>
-            <p className="text-xl text-[#c7c4d8] font-medium">Join security-conscious professionals who trust Veilora for their sensitive data.</p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button onClick={() => navigate('/login')}
-                className="button-gradient text-[#000da4] px-10 py-5 rounded-full font-bold text-xl shadow-2xl hover:scale-105 transition-transform">
+        <section id="cta" style={{padding:'120px 0', background:'#060810', position:'relative', overflow:'hidden'}}>
+          <div className="glow-orb" style={{position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:700, height:400, borderRadius:'50%', background:'rgba(79,70,229,0.12)', filter:'blur(100px)'}}/>
+          <div style={{maxWidth:640, margin:'0 auto', padding:'0 48px', textAlign:'center', position:'relative', zIndex:1}}>
+            <h2 style={{fontSize:56, fontWeight:900, color:'#fff', letterSpacing:'-2px', lineHeight:1.1, marginBottom:20}}>Ready to share files the private way?</h2>
+            <p style={{fontSize:18, color:'#64748b', marginBottom:44, lineHeight:1.7}}>Join security-conscious professionals who trust Veilora for their sensitive data.</p>
+            <div style={{display:'flex', justifyContent:'center', gap:16, flexWrap:'wrap', marginBottom:24}}>
+              <button className="btn-primary" onClick={() => navigate('/login')}
+                style={{padding:'16px 40px', borderRadius:999, fontSize:17, fontFamily:'Inter,sans-serif'}}>
                 Create Free Account
               </button>
               <a href="https://github.com/AronJoseph96/Veilora" target="_blank" rel="noopener noreferrer"
-                className="border px-10 py-5 rounded-full font-bold text-xl hover:bg-white/5 transition-colors text-[#dee1f7] flex items-center gap-3"
-                style={{borderColor:'rgba(70,69,85,0.3)'}}>
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                className="btn-secondary"
+                style={{padding:'16px 40px', borderRadius:999, fontSize:17, fontFamily:'Inter,sans-serif', display:'flex', alignItems:'center', gap:10, textDecoration:'none'}}>
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
                 </svg>
                 View on GitHub
               </a>
             </div>
-            <p className="text-sm text-slate-500">No credit card. No tracking. No compromise.</p>
+            <p style={{fontSize:13, color:'#334155'}}>No credit card. No tracking. No compromise.</p>
           </div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full -z-10 blur-[120px]"
-            style={{background:'rgba(190,194,255,0.2)'}}></div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-12 px-8" style={{background:'#090e1c'}}>
-        <div className="flex flex-col md:flex-row justify-between items-start gap-12 max-w-7xl mx-auto">
-          <div className="space-y-4 max-w-xs">
-            <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="Veilora" className="h-8 w-auto rounded-lg" />
-              <span className="text-lg font-bold text-white">Veilora</span>
-            </div>
-            <p className="text-slate-500 text-sm font-medium leading-relaxed">
-              The sovereign vault for your digital assets. Privacy by default, security by mathematics.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-12">
-            {[
-              {
-                title: 'Platform',
-                links: [
-                  { label: 'How It Works', action: () => scrollTo('howitworks') },
-                  { label: 'Features', action: () => scrollTo('features') },
-                  { label: 'Security', action: () => scrollTo('security') },
-                ]
-              },
-              {
-                title: 'Resources',
-                links: [
-                  { label: 'GitHub', href: 'https://github.com/AronJoseph96/Veilora' },
-                  { label: 'Get Started', action: () => navigate('/login') },
-                ]
-              },
-              {
-                title: 'Legal',
-                links: [
-                  { label: 'Privacy Policy', href: '#' },
-                  { label: 'Terms of Service', href: '#' },
-                ]
-              },
-            ].map(({ title, links }) => (
-              <div key={title} className="space-y-4">
-                <h5 className="text-white font-bold text-sm uppercase tracking-widest">{title}</h5>
-                <ul className="space-y-2">
-                  {links.map(({ label, href, action }) => (
-                    <li key={label}>
-                      {action ? (
-                        <button onClick={action} className="text-slate-500 font-medium text-sm hover:text-indigo-300 transition-colors text-left">
-                          {label}
-                        </button>
-                      ) : (
-                        <a href={href} target={href?.startsWith('http') ? '_blank' : undefined}
-                          rel="noopener noreferrer"
-                          className="text-slate-500 font-medium text-sm hover:text-indigo-300 transition-colors">
-                          {label}
-                        </a>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+      <footer style={{background:'#04060f', borderTop:'1px solid rgba(255,255,255,0.04)', padding:'56px 48px 32px'}}>
+        <div style={{maxWidth:1280, margin:'0 auto'}}>
+          <div style={{display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:48, marginBottom:48}}>
+            <div style={{maxWidth:280}}>
+              <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:16}}>
+                <img src="/logo.jpeg" alt="Veilora" className="logo-img" style={{height:32, width:'auto'}}/>
+                <span style={{fontSize:18, fontWeight:800, color:'#fff'}}>Veilora</span>
               </div>
-            ))}
+              <p style={{color:'#334155', fontSize:14, lineHeight:1.7}}>The sovereign vault for your digital assets. Privacy by default, security by mathematics.</p>
+            </div>
+            <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:48}}>
+              {[
+                { title:'Platform', links:[
+                  { label:'How It Works', action:() => scrollTo('howitworks') },
+                  { label:'Features', action:() => scrollTo('features') },
+                  { label:'Security', action:() => scrollTo('security') },
+                ]},
+                { title:'Resources', links:[
+                  { label:'GitHub', href:'https://github.com/AronJoseph96/Veilora' },
+                  { label:'Get Started', action:() => navigate('/login') },
+                ]},
+                { title:'Legal', links:[
+                  { label:'Privacy Policy', href:'#' },
+                  { label:'Terms of Service', href:'#' },
+                ]},
+              ].map(({ title, links }) => (
+                <div key={title}>
+                  <h5 style={{color:'#fff', fontWeight:700, fontSize:12, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:16}}>{title}</h5>
+                  <ul style={{listStyle:'none', display:'flex', flexDirection:'column', gap:10}}>
+                    {links.map(({ label, href, action }) => (
+                      <li key={label}>
+                        {action
+                          ? <button onClick={action} style={{background:'none', border:'none', color:'#475569', fontSize:14, cursor:'pointer', fontFamily:'Inter,sans-serif', transition:'color 0.2s'}}
+                              onMouseEnter={e => e.target.style.color='#818cf8'} onMouseLeave={e => e.target.style.color='#475569'}>{label}</button>
+                          : <a href={href} target={href?.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer"
+                              style={{color:'#475569', fontSize:14, textDecoration:'none', transition:'color 0.2s'}}
+                              onMouseEnter={e => e.target.style.color='#818cf8'} onMouseLeave={e => e.target.style.color='#475569'}>{label}</a>
+                        }
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-slate-500 text-sm font-medium">© 2025 Veilora. All rights reserved.</p>
-          <a href="https://github.com/AronJoseph96/Veilora" target="_blank" rel="noopener noreferrer"
-            className="text-slate-500 hover:text-white transition-colors">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-            </svg>
-          </a>
+          <div style={{borderTop:'1px solid rgba(255,255,255,0.04)', paddingTop:24, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:16}}>
+            <p style={{color:'#1e293b', fontSize:13}}>© 2025 Veilora. All rights reserved.</p>
+            <a href="https://github.com/AronJoseph96/Veilora" target="_blank" rel="noopener noreferrer"
+              style={{color:'#334155', transition:'color 0.2s'}}
+              onMouseEnter={e => e.currentTarget.style.color='#fff'} onMouseLeave={e => e.currentTarget.style.color='#334155'}>
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+              </svg>
+            </a>
+          </div>
         </div>
       </footer>
     </div>
