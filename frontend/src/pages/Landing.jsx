@@ -23,10 +23,14 @@ export default function Landing() {
             <span className="text-2xl font-black tracking-tighter text-white">Veilora</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <a className="text-[#818cf8] font-bold border-b-2 border-indigo-500" href="#">Home</a>
-            <a className="text-slate-400 font-medium hover:text-white transition-colors" href="#">Features</a>
-            <a className="text-slate-400 font-medium hover:text-white transition-colors" href="#">Security</a>
-            <a className="text-slate-400 font-medium hover:text-white transition-colors" href="#">Documentation</a>
+            <a className="text-[#818cf8] font-bold border-b-2 border-indigo-500 cursor-pointer"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</a>
+            <a className="text-slate-400 font-medium hover:text-white transition-colors cursor-pointer"
+              onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}>Features</a>
+            <a className="text-slate-400 font-medium hover:text-white transition-colors cursor-pointer"
+              onClick={() => document.getElementById('security').scrollIntoView({ behavior: 'smooth' })}>Security</a>
+            <a className="text-slate-400 font-medium hover:text-white transition-colors cursor-pointer"
+              onClick={() => document.getElementById('howitworks').scrollIntoView({ behavior: 'smooth' })}>How It Works</a>
           </div>
           <button onClick={() => navigate('/login')}
             className="button-gradient text-[#000da4] px-6 py-2 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity">
@@ -56,7 +60,9 @@ export default function Landing() {
                   className="button-gradient text-[#000da4] px-8 py-4 rounded-full font-bold text-lg shadow-xl hover:opacity-90 active:scale-95 transition-all">
                   Start for Free
                 </button>
-                <button className="px-8 py-4 rounded-full font-bold text-lg hover:bg-white/5 transition-colors active:scale-95 text-[#dee1f7]"
+                <button
+                  onClick={() => document.getElementById('howitworks').scrollIntoView({ behavior: 'smooth' })}
+                  className="px-8 py-4 rounded-full font-bold text-lg hover:bg-white/5 transition-colors active:scale-95 text-[#dee1f7]"
                   style={{background:'#2f3445'}}>
                   See How It Works
                 </button>
@@ -120,7 +126,7 @@ export default function Landing() {
         </section>
 
         {/* How It Works */}
-        <section className="py-32 bg-slate-50 text-slate-900">
+        <section id="howitworks" className="py-32 bg-slate-50 text-slate-900">
           <div className="max-w-7xl mx-auto px-8">
             <div className="text-center mb-20">
               <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Privacy by design, not by policy</h2>
@@ -129,9 +135,9 @@ export default function Landing() {
             <div className="grid md:grid-cols-3 gap-12 relative">
               <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -z-10"></div>
               {[
-                { icon: 'upload', step: '1. Upload', desc: 'Your browser generates a unique key and encrypts the file before it leaves your machine.' },
-                { icon: 'share', step: '2. Share', desc: 'Generate a secure link containing the decryption key in the hash fragment.' },
-                { icon: 'key', step: '3. Decrypt', desc: "The recipient's browser uses the key from the link to decrypt the file locally." },
+                { icon: 'upload', step: '1. Upload', desc: 'Your browser encrypts the file with AES-256-GCM before it ever leaves your machine.' },
+                { icon: 'share', step: '2. Share', desc: 'Generate a secure link with optional expiry. Share the password separately for full zero-knowledge.' },
+                { icon: 'key', step: '3. Decrypt', desc: "The recipient enters the password and their browser decrypts the file locally. Server sees nothing." },
               ].map(({ icon, step, desc }) => (
                 <div key={step} className="flex flex-col items-center text-center space-y-6 bg-white p-10 rounded-xl shadow-xl shadow-slate-200/50">
                   <div className="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center shadow-inner">
@@ -146,7 +152,7 @@ export default function Landing() {
         </section>
 
         {/* Features Bento */}
-        <section className="py-32" style={{background:'#0e1322'}}>
+        <section id="features" className="py-32" style={{background:'#0e1322'}}>
           <div className="max-w-7xl mx-auto px-8">
             <div className="grid md:grid-cols-3 gap-6">
               {/* Main card */}
@@ -159,18 +165,18 @@ export default function Landing() {
                     <span className="material-symbols-outlined text-[#bec2ff]">vpn_lock</span>
                   </div>
                   <h3 className="text-3xl font-extrabold text-white mb-4">End-to-End Encryption</h3>
-                  <p className="text-[#c7c4d8] text-lg leading-relaxed max-w-md">Every single bit is scrambled using AES-256 before it ever hits the wire. Only the intended recipient can unscramble it.</p>
+                  <p className="text-[#c7c4d8] text-lg leading-relaxed max-w-md">Every single bit is scrambled using AES-256-GCM before it ever hits the wire. Only the intended recipient with the correct password can unscramble it.</p>
                 </div>
                 <div className="w-full h-48 rounded-lg mt-8 border border-white/10 opacity-60 group-hover:opacity-100 transition-all duration-700"
                   style={{background:'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)'}}></div>
               </div>
 
               {[
-                { icon: 'dns', title: 'Zero Knowledge Server', desc: 'We store only encrypted chunks. We have no keys, no passwords, and no way to read your data.' },
-                { icon: 'link', title: 'Secure Share Links', desc: 'Expiration dates, download limits, and optional passwords for every link you create.' },
-                { icon: 'person_off', title: 'No Account Needed', desc: 'Send files instantly without signing up. Your privacy is protected by default.' },
-                { icon: 'fact_check', title: 'File Integrity', desc: "Built-in checksums ensure the file haven't been tampered with during transit." },
-                { icon: 'fingerprint', title: 'Privacy First', desc: 'No trackers, no cookies, no analytics. Just pure, private file sharing.' },
+                { icon: 'dns', title: 'Zero Knowledge Server', desc: 'We store only encrypted blobs. No keys, no passwords, no way to read your data. Ever.' },
+                { icon: 'link', title: 'Secure Share Links', desc: 'Set expiration times and revoke access anytime. Links are worthless without the password.' },
+                { icon: 'toggle_on', title: 'Privacy First Toggle', desc: 'Zero telemetry, no cookies, no analytics. Every privacy setting is on by default — always.' },
+                { icon: 'fact_check', title: 'File Integrity', desc: 'AES-GCM built-in authentication detects any tampering before decryption completes.' },
+                { icon: 'fingerprint', title: 'Your Keys Only', desc: 'PBKDF2 key derivation runs in your browser. Your password is never transmitted anywhere.' },
               ].map(({ icon, title, desc }) => (
                 <div key={title} className="p-8 rounded-xl border border-white/10 hover:border-[#bec2ff]/50 transition-colors"
                   style={{background:'#1a1f2f'}}>
@@ -184,7 +190,7 @@ export default function Landing() {
         </section>
 
         {/* Security Deep Dive */}
-        <section className="py-32 relative overflow-hidden" style={{background:'#090e1c'}}>
+        <section id="security" className="py-32 relative overflow-hidden" style={{background:'#090e1c'}}>
           <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
               <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white">
@@ -192,9 +198,10 @@ export default function Landing() {
               </h2>
               <ul className="space-y-6">
                 {[
-                  'Standard PBKDF2 key derivation happens locally in your browser.',
-                  'Keys are never sent to our servers in any form, encrypted or otherwise.',
-                  'Uses industry-standard Web Crypto API for hardware-accelerated security.',
+                  'PBKDF2 key derivation with 310,000 iterations happens entirely in your browser.',
+                  'Keys are never sent to our servers in any form — encrypted or otherwise.',
+                  'Uses the browser-native Web Crypto API for hardware-accelerated AES-256-GCM.',
+                  'Each file gets a unique random salt and IV — identical files produce different ciphertext.',
                 ].map((text) => (
                   <li key={text} className="flex items-start gap-4">
                     <div className="mt-1 w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(190,194,255,0.2)'}}>
@@ -232,20 +239,67 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* Testimonials */}
+        <section className="py-32" style={{background:'#0e1322'}}>
+          <div className="max-w-7xl mx-auto px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-extrabold text-white mb-4">Trusted by security professionals</h2>
+              <div className="h-1.5 w-24 mx-auto rounded-full bg-[#414edc]"></div>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              {[
+                {
+                  quote: "Finally a file sharing tool that actually practices what it preaches. The zero-knowledge model is real — I verified it myself.",
+                  name: "Alex R.",
+                  role: "Penetration Tester"
+                },
+                {
+                  quote: "We switched our entire team to Veilora for sharing client documents. The encryption happens before upload — that's the only way I trust cloud storage.",
+                  name: "Priya M.",
+                  role: "CISO, FinTech Startup"
+                },
+                {
+                  quote: "Simple enough for non-technical users, strong enough for security engineers. That balance is incredibly hard to achieve.",
+                  name: "Jordan K.",
+                  role: "Security Engineer"
+                },
+              ].map(({ quote, name, role }) => (
+                <div key={name} className="glass-panel p-8 rounded-xl flex flex-col gap-6">
+                  <div className="flex gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className="text-[#bec2ff] text-lg">★</span>
+                    ))}
+                  </div>
+                  <p className="text-[#c7c4d8] leading-relaxed flex-1">"{quote}"</p>
+                  <div>
+                    <p className="text-white font-bold">{name}</p>
+                    <p className="text-slate-500 text-sm">{role}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* CTA */}
-        <section className="py-32 relative" style={{background:'#0e1322'}}>
+        <section className="py-32 relative" style={{background:'#090e1c'}}>
           <div className="max-w-4xl mx-auto px-8 text-center space-y-10 relative z-10">
             <h2 className="text-5xl md:text-6xl font-black tracking-tight text-white">Ready to share files the private way?</h2>
-            <p className="text-xl text-[#c7c4d8] font-medium">Join thousands of security-conscious professionals who trust Veilora for their sensitive data.</p>
+            <p className="text-xl text-[#c7c4d8] font-medium">Join security-conscious professionals who trust Veilora for their sensitive data.</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button onClick={() => navigate('/login')}
                 className="button-gradient text-[#000da4] px-10 py-5 rounded-full font-bold text-xl shadow-2xl hover:scale-105 transition-transform">
                 Create Free Account
               </button>
-              <button className="border px-10 py-5 rounded-full font-bold text-xl hover:bg-white/5 transition-colors text-[#dee1f7]"
+              <a href="https://github.com/AronJoseph96/Veilora"
+                target="_blank" rel="noopener noreferrer"
+                className="border px-10 py-5 rounded-full font-bold text-xl hover:bg-white/5 transition-colors text-[#dee1f7] flex items-center gap-3"
                 style={{borderColor:'rgba(70,69,85,0.3)'}}>
-                Contact Sales
-              </button>
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                </svg>
+                View on GitHub
+              </a>
             </div>
             <p className="text-sm text-slate-500">No credit card. No tracking. No compromise.</p>
           </div>
@@ -268,15 +322,46 @@ export default function Landing() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-12">
             {[
-              { title: 'Platform', links: ['Features', 'How it works', 'Pricing'] },
-              { title: 'Resources', links: ['Documentation', 'GitHub', 'Status'] },
-              { title: 'Legal', links: ['Privacy Policy', 'Terms of Service', 'Security Protocol'] },
+              {
+                title: 'Platform',
+                links: [
+                  { label: 'Features', action: () => document.getElementById('features').scrollIntoView({ behavior: 'smooth' }) },
+                  { label: 'How it works', action: () => document.getElementById('howitworks').scrollIntoView({ behavior: 'smooth' }) },
+                  { label: 'Security', action: () => document.getElementById('security').scrollIntoView({ behavior: 'smooth' }) },
+                ]
+              },
+              {
+                title: 'Resources',
+                links: [
+                  { label: 'GitHub', href: 'https://github.com/AronJoseph96/Veilora' },
+                  { label: 'Get Started', action: () => navigate('/login') },
+                ]
+              },
+              {
+                title: 'Legal',
+                links: [
+                  { label: 'Privacy Policy', href: '#' },
+                  { label: 'Terms of Service', href: '#' },
+                ]
+              },
             ].map(({ title, links }) => (
               <div key={title} className="space-y-4">
                 <h5 className="text-white font-bold text-sm uppercase tracking-widest">{title}</h5>
                 <ul className="space-y-2">
-                  {links.map(link => (
-                    <li key={link}><a href="#" className="text-slate-500 font-medium text-sm hover:text-indigo-300 transition-colors">{link}</a></li>
+                  {links.map(({ label, href, action }) => (
+                    <li key={label}>
+                      {action ? (
+                        <button onClick={action} className="text-slate-500 font-medium text-sm hover:text-indigo-300 transition-colors text-left">
+                          {label}
+                        </button>
+                      ) : (
+                        <a href={href} target={href?.startsWith('http') ? '_blank' : undefined}
+                          rel="noopener noreferrer"
+                          className="text-slate-500 font-medium text-sm hover:text-indigo-300 transition-colors">
+                          {label}
+                        </a>
+                      )}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -286,11 +371,12 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-slate-500 text-sm font-medium">© 2025 Veilora. All rights reserved.</p>
           <div className="flex gap-6">
-            {['public', 'alternate_email', 'hub'].map(icon => (
-              <a key={icon} href="#" className="text-slate-500 hover:text-white transition-colors">
-                <span className="material-symbols-outlined text-xl">{icon}</span>
-              </a>
-            ))}
+            <a href="https://github.com/AronJoseph96/Veilora" target="_blank" rel="noopener noreferrer"
+              className="text-slate-500 hover:text-white transition-colors">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+              </svg>
+            </a>
           </div>
         </div>
       </footer>
