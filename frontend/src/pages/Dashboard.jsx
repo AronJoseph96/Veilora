@@ -120,6 +120,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
   const [activeNav, setActiveNav] = useState('files')
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark)
@@ -165,13 +166,25 @@ export default function Dashboard() {
     } catch { toast.error('Decryption failed — wrong password?') }
   }
 
-  async function createShareLink(fileId) {
-    const hours = prompt('Expire after how many hours? (leave blank = never)')
-    const { data } = await api.post('/api/share', { fileId, expiresInHours: hours ? parseInt(hours) : null })
-    const link = `${window.location.origin}/share/${data.token}`
-    setShareLinks(prev => ({ ...prev, [fileId]: link }))
-    navigator.clipboard.writeText(link).catch(() => {})
-    toast.success('Share link copied to clipboard!')
+  const [shareModal, setShareModal] = useState(null) // { fileId, hours: '' }
+
+  function openShareModal(fileId) { setShareModal({ fileId, hours: '' }) }
+
+  async function confirmShare() {
+    const { fileId, hours } = shareModal
+    const parsed = hours.trim() === '' ? null : parseInt(hours)
+    if (hours.trim() !== '' && (isNaN(parsed) || parsed <= 0)) {
+      toast.error('Enter a valid number of hours, or leave blank for no expiry.')
+      return
+    }
+    setShareModal(null)
+    try {
+      const { data } = await api.post('/api/share', { fileId, expiresInHours: parsed })
+      const link = `${window.location.origin}/share/${data.token}`
+      setShareLinks(prev => ({ ...prev, [fileId]: link }))
+      navigator.clipboard.writeText(link).catch(() => {})
+      toast.success(parsed ? `Share link created — expires in ${parsed}h. Copied!` : 'Share link created (no expiry). Copied!')
+    } catch (e) { toast.error('Failed to create share link: ' + e.message) }
   }
 
   async function deleteFile(id) {
@@ -280,7 +293,7 @@ export default function Dashboard() {
                       <p style={{ fontSize: 12, color: textSecondary }}>{formatSize(file.size)}</p>
                     </div>
                   </div>
-                  <button onClick={() => createShareLink(file.id)} style={{
+                  <button onClick={() => openShareModal(file.id)} style={{
                     padding: '8px 16px', borderRadius: 10, border: `1px solid ${cardBorder}`,
                     background: accentLight, color: accent, fontSize: 13, fontWeight: 600,
                     cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
@@ -411,7 +424,7 @@ export default function Dashboard() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
                 {[
                   { icon: ICONS.download, title: 'Download & decrypt', onClick: () => downloadFile(file), hoverColor: textPrimary },
-                  { icon: ICONS.link, title: 'Share', onClick: () => createShareLink(file.id), hoverColor: accent },
+                  { icon: ICONS.link, title: 'Share', onClick: () => openShareModal(file.id), hoverColor: accent },
                   { icon: deletingId === file.id ? null : ICONS.trash, title: 'Delete', onClick: () => deleteFile(file.id), hoverColor: '#ef4444' },
                 ].map(({ icon, title, onClick, hoverColor }, idx) => (
                   <button key={idx} onClick={onClick} title={title}
@@ -449,7 +462,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: bg, fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", transition: 'background 0.3s' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: bg, fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", transition: 'background 0.3s', position: 'relative' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -461,10 +474,25 @@ export default function Dashboard() {
         }
         .dash-input::placeholder { color: ${textSecondary}; }
         .dash-input:focus { border-color: ${accent}; box-shadow: 0 0 0 3px ${accentLight}; }
+        .share-modal-input {
+          width: 100%; padding: 12px 14px; border-radius: 11px;
+          border: 1.5px solid ${inputBorder}; background: ${inputBg};
+          color: ${textPrimary}; font-size: 14px; font-family: 'DM Sans', sans-serif;
+          outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .share-modal-input::placeholder { color: ${textSecondary}; }
+        .share-modal-input:focus { border-color: ${accent}; box-shadow: 0 0 0 3px ${accentLight}; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+        @keyframes slideUp { from { opacity:0; transform:translateY(16px) } to { opacity:1; transform:translateY(0) } }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: ${d ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)'}; border-radius: 99px; }
+        @media (max-width: 768px) {
+          .dash-sidebar { position: fixed !important; z-index: 200 !important; height: 100vh !important; }
+          .dash-overlay { display: block !important; }
+          .dash-main { padding: 24px 18px !important; }
+        }
       `}</style>
 
       {/* Sidebar */}
@@ -474,13 +502,7 @@ export default function Dashboard() {
         display: 'flex', flexDirection: 'column',
         position: 'sticky', top: 0, height: '100vh', overflow: 'auto',
       }}>
-        {/* Logo */}
-        <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${sidebarBorder}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <img src="/logo.png" alt="Veilora" style={{ height: 36, width: 'auto', filter: d ? 'brightness(0) invert(1)' : 'none' }} />
-            <span style={{ fontSize: 28, fontWeight: 900, color: textPrimary, letterSpacing: '-0.3px', fontFamily: "'DM Serif Display', serif" }}></span>
-          </div>
-        </div>
+
 
         {/* Nav */}
         <nav style={{ flex: 1, padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -542,13 +564,25 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+        </div>
       </aside>
 
       {/* Main content */}
-      <main style={{ flex: 1, padding: '40px 48px', overflowY: 'auto', maxWidth: 860 }}>
+      <main className="dash-main" style={{ flex: 1, padding: '40px 48px', overflowY: 'auto', maxWidth: 900, paddingLeft: !sidebarOpen ? 72 : 48, transition: 'padding-left 0.28s' }}>
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {!sidebarOpen && (
+              <button onClick={() => setSidebarOpen(true)} style={{
+                width: 36, height: 36, borderRadius: 10, border: `1px solid ${cardBorder}`,
+                background: card, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: textSecondary, marginRight: 8, flexShrink: 0,
+              }}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+              </button>
+            )}
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite' }} />
             <span style={{ fontSize: 13, color: textSecondary, fontWeight: 500 }}>End-to-end encrypted</span>
           </div>
@@ -556,6 +590,50 @@ export default function Dashboard() {
 
         {renderContent()}
       </main>
+
+      {/* Share expiry modal */}
+      {shareModal && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000, display: 'flex',
+          alignItems: 'center', justifyContent: 'center', padding: 20,
+          background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)',
+          animation: 'fadeIn 0.2s ease',
+        }} onClick={e => { if (e.target === e.currentTarget) setShareModal(null) }}>
+          <div style={{
+            background: card, border: `1px solid ${cardBorder}`, borderRadius: 20,
+            padding: '32px 28px', width: '100%', maxWidth: 380,
+            boxShadow: '0 24px 64px rgba(0,0,0,0.3)',
+            animation: 'slideUp 0.25s cubic-bezier(0.22,1,0.36,1)',
+            fontFamily: "'DM Sans', sans-serif",
+          }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: textPrimary, marginBottom: 6 }}>Create Share Link</h3>
+            <p style={{ fontSize: 13, color: textSecondary, marginBottom: 22 }}>Set an optional expiry. Leave blank for a permanent link.</p>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: textPrimary, marginBottom: 8 }}>Expires after (hours)</label>
+            <input
+              className="share-modal-input"
+              type="number"
+              min="1"
+              placeholder="e.g. 24  — leave blank for never"
+              value={shareModal.hours}
+              onChange={e => setShareModal(prev => ({ ...prev, hours: e.target.value }))}
+              onKeyDown={e => e.key === 'Enter' && confirmShare()}
+              autoFocus
+            />
+            <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+              <button onClick={() => setShareModal(null)} style={{
+                flex: 1, padding: '11px', borderRadius: 11, border: `1px solid ${cardBorder}`,
+                background: 'transparent', color: textSecondary, fontSize: 14, fontWeight: 600,
+                cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+              }}>Cancel</button>
+              <button onClick={confirmShare} style={{
+                flex: 1, padding: '11px', borderRadius: 11, border: 'none',
+                background: accent, color: '#fff', fontSize: 14, fontWeight: 700,
+                cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+              }}>Generate Link</button>
+            </div>
+          </div>
+        </div>
+      )}
       <Toaster dark={d} />
     </div>
   )

@@ -106,8 +106,7 @@ export default function SharedFile() {
       }}>
         {/* Logo */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
-          <img src="/logo.png" alt="Veilora" style={{ height: 44, width: 'auto', marginBottom: 8 }} />
-          <span style={{ fontSize: 20, fontWeight: 700, color: '#1a1714', fontFamily: "'DM Serif Display', serif" }}>Veilora</span>
+          <img src="/logo.png" alt="Veilora" style={{ height: 68, width: 'auto', marginBottom: 6 }} />
           <span style={{ fontSize: 12, color: '#9a9289', marginTop: 2 }}>Secure file sharing</span>
         </div>
 

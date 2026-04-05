@@ -81,6 +81,20 @@ export default function Landing() {
         .testimonial-card:hover { background: rgba(124,131,255,0.06); border-color: rgba(124,131,255,0.2); transform: translateY(-4px); }
         .logo-img { filter: brightness(0) invert(1); transition: all 0.3s ease; }
         .logo-img:hover { filter: brightness(0) invert(1) drop-shadow(0 0 8px rgba(165,180,252,0.8)); }
+        @media (max-width: 768px) {
+          nav { padding: 12px 20px !important; }
+          nav > div:nth-child(2) { display: none !important; }
+          #hero > div > div { grid-template-columns: 1fr !important; padding: 0 20px !important; gap: 32px !important; }
+          #hero > div > div > div:nth-child(2) { display: none !important; }
+          h1 { font-size: 44px !important; }
+          #howitworks > div, #features > div, #security > div, #cta > div { padding: 0 20px !important; }
+          #howitworks > div > div:last-child { grid-template-columns: 1fr !important; }
+          #features > div > div:first-child { grid-template-columns: 1fr !important; }
+          #features > div > div:last-child { grid-template-columns: 1fr 1fr !important; }
+          #security > div { grid-template-columns: 1fr !important; gap: 40px !important; }
+          footer > div > div:first-child > div { flex-direction: column !important; gap: 24px !important; }
+          footer > div > div:first-child > div > div:last-child { grid-template-columns: 1fr 1fr !important; gap: 24px !important; }
+        }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
       `}</style>
 
@@ -95,8 +109,7 @@ export default function Landing() {
         <nav style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 48px', maxWidth:1280, margin:'0 auto'}}>
           <div style={{display:'flex', alignItems:'center', gap:10, cursor:'pointer'}}
             onClick={() => { scrollTo('hero'); setActiveSection('hero') }}>
-            <img src="/logo.png" alt="Veilora" className="logo-img" style={{height:36, width:'auto'}} />
-            <span style={{fontSize:28, fontWeight:900, color:'#fff', letterSpacing:'-0.5px'}}></span>
+            <img src="/logo.png" alt="Veilora" className="logo-img" style={{height:60, width:'auto'}} />
           </div>
 
           <div style={{display:'flex', alignItems:'center', gap:32}}>
@@ -384,8 +397,7 @@ export default function Landing() {
           <div style={{display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:48, marginBottom:48}}>
             <div style={{maxWidth:280}}>
               <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:16}}>
-                <img src="/logo.png" className="logo-img" style={{height:32, width:'auto'}}/>
-                <span style={{fontSize:28, fontWeight:900, color:'#fff'}}></span>
+                <img src="/logo.png" alt="Veilora" className="logo-img" style={{height:48, width:'auto'}}/>
               </div>
               <p style={{color:'#334155', fontSize:14, lineHeight:1.7}}>The sovereign vault for your digital assets. Privacy by default, security by mathematics.</p>
             </div>
