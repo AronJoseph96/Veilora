@@ -129,7 +129,7 @@ export default function Landing() {
             position:'absolute', inset:0, zIndex:0,
             backgroundImage:'url(/veilorabg.jpeg)',
             backgroundSize:'cover', backgroundPosition:'center',
-            opacity:0.50
+            opacity:1.0
           }}/>
 
           <div className="glow-orb" style={{position:'absolute', top:'20%', left:'10%', width:400, height:400, borderRadius:'50%', background:'rgba(79,70,229,0.08)', filter:'blur(80px)', zIndex:1}}/>
