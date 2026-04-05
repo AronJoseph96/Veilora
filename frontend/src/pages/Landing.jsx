@@ -95,7 +95,7 @@ export default function Landing() {
         <nav style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 48px', maxWidth:1280, margin:'0 auto'}}>
           <div style={{display:'flex', alignItems:'center', gap:10, cursor:'pointer'}}
             onClick={() => { scrollTo('hero'); setActiveSection('hero') }}>
-            <img src="/logo.png" alt="Veilora" className="logo-img" style={{height:36, width:'auto'}} />
+            <img src="/logo.png" alt="Veilora" className="logo-img" style={{height:56, width:'auto'}} />
             <span style={{fontSize:22, fontWeight:900, color:'#fff', letterSpacing:'-0.5px'}}>Veilora</span>
           </div>
 
@@ -131,8 +131,7 @@ export default function Landing() {
             backgroundSize:'cover', backgroundPosition:'center',
             opacity:0.18
           }}/>
-          {/* Gradient overlay */}
-          <div style={{position:'absolute', inset:0, zIndex:1, background:'radial-gradient(ellipse at 50% 40%, rgba(79,70,229,0.12) 0%, transparent 70%)'}}/>
+
           <div className="glow-orb" style={{position:'absolute', top:'20%', left:'10%', width:400, height:400, borderRadius:'50%', background:'rgba(79,70,229,0.08)', filter:'blur(80px)', zIndex:1}}/>
           <div className="glow-orb" style={{position:'absolute', bottom:'20%', right:'10%', width:300, height:300, borderRadius:'50%', background:'rgba(124,131,255,0.06)', filter:'blur(60px)', zIndex:1, animationDelay:'2s'}}/>
 
