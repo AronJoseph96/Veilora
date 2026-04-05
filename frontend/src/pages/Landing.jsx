@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 export default function Landing() {
   const navigate = useNavigate()
 
+  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+
   return (
     <div className="dark bg-[#0e1322] text-[#dee1f7] font-[Inter] min-h-screen">
       <style>{`
@@ -17,23 +19,32 @@ export default function Landing() {
 
       {/* Navbar */}
       <header className="fixed top-0 w-full z-50 backdrop-blur-xl border-b border-white/10 shadow-2xl" style={{background:'rgba(2,6,23,0.4)'}}>
-        <nav className="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined" style={{color:'#818cf8'}}>security</span>
+        <nav className="flex justify-between items-center px-8 py-3 max-w-7xl mx-auto">
+          {/* Logo */}
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <img src="/logo.jpeg" alt="Veilora" className="h-9 w-auto rounded-lg" />
             <span className="text-2xl font-black tracking-tighter text-white">Veilora</span>
           </div>
+
+          {/* Nav links */}
           <div className="hidden md:flex items-center gap-8">
-            <a className="text-[#818cf8] font-bold border-b-2 border-indigo-500 cursor-pointer"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</a>
-            <a className="text-slate-400 font-medium hover:text-white transition-colors cursor-pointer"
-              onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}>Features</a>
-            <a className="text-slate-400 font-medium hover:text-white transition-colors cursor-pointer"
-              onClick={() => document.getElementById('security').scrollIntoView({ behavior: 'smooth' })}>Security</a>
-            <a className="text-slate-400 font-medium hover:text-white transition-colors cursor-pointer"
-              onClick={() => document.getElementById('howitworks').scrollIntoView({ behavior: 'smooth' })}>How It Works</a>
+            {[
+              { label: 'Home', id: null },
+              { label: 'How It Works', id: 'howitworks' },
+              { label: 'Features', id: 'features' },
+              { label: 'Security', id: 'security' },
+              { label: 'Get Started', id: 'cta' },
+            ].map(({ label, id }) => (
+              <a key={label}
+                className="font-medium hover:text-white transition-colors cursor-pointer text-slate-400 hover:text-[#bec2ff] text-sm"
+                onClick={() => id ? scrollTo(id) : window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                {label}
+              </a>
+            ))}
           </div>
+
           <button onClick={() => navigate('/login')}
-            className="button-gradient text-[#000da4] px-6 py-2 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity">
+            className="button-gradient text-[#000da4] px-6 py-2 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity text-sm">
             Start Now
           </button>
         </nav>
@@ -41,7 +52,7 @@ export default function Landing() {
 
       <main>
         {/* Hero */}
-        <section className="relative min-h-screen flex flex-col items-center justify-center pt-32 pb-20 overflow-hidden">
+        <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center pt-32 pb-20 overflow-hidden">
           <div className="absolute inset-0 hero-glow -z-10"></div>
           <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
@@ -60,8 +71,7 @@ export default function Landing() {
                   className="button-gradient text-[#000da4] px-8 py-4 rounded-full font-bold text-lg shadow-xl hover:opacity-90 active:scale-95 transition-all">
                   Start for Free
                 </button>
-                <button
-                  onClick={() => document.getElementById('howitworks').scrollIntoView({ behavior: 'smooth' })}
+                <button onClick={() => scrollTo('howitworks')}
                   className="px-8 py-4 rounded-full font-bold text-lg hover:bg-white/5 transition-colors active:scale-95 text-[#dee1f7]"
                   style={{background:'#2f3445'}}>
                   See How It Works
@@ -78,7 +88,7 @@ export default function Landing() {
                     <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
                     <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
                   </div>
-                  <span className="text-xs text-slate-500 font-mono">v-vault://secure-session</span>
+                  <span className="text-xs text-slate-500 font-mono">secure-session</span>
                 </div>
                 <div className="border-2 border-dashed rounded-lg p-12 flex flex-col items-center justify-center text-center space-y-4"
                   style={{borderColor:'rgba(70,69,85,0.5)', background:'rgba(9,14,28,0.5)'}}>
@@ -154,8 +164,11 @@ export default function Landing() {
         {/* Features Bento */}
         <section id="features" className="py-32" style={{background:'#0e1322'}}>
           <div className="max-w-7xl mx-auto px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-extrabold text-white mb-4">Everything you need for secure sharing</h2>
+              <div className="h-1.5 w-24 mx-auto rounded-full bg-[#414edc]"></div>
+            </div>
             <div className="grid md:grid-cols-3 gap-6">
-              {/* Main card */}
               <div className="md:col-span-2 glass-panel p-10 rounded-xl flex flex-col justify-between group overflow-hidden relative">
                 <div className="absolute top-0 right-0 p-8 opacity-10 scale-150 group-hover:scale-[1.7] transition-transform">
                   <span className="material-symbols-outlined text-[160px]">security</span>
@@ -174,7 +187,6 @@ export default function Landing() {
               {[
                 { icon: 'dns', title: 'Zero Knowledge Server', desc: 'We store only encrypted blobs. No keys, no passwords, no way to read your data. Ever.' },
                 { icon: 'link', title: 'Secure Share Links', desc: 'Set expiration times and revoke access anytime. Links are worthless without the password.' },
-                { icon: 'toggle_on', title: 'Privacy First Toggle', desc: 'Zero telemetry, no cookies, no analytics. Every privacy setting is on by default — always.' },
                 { icon: 'fact_check', title: 'File Integrity', desc: 'AES-GCM built-in authentication detects any tampering before decryption completes.' },
                 { icon: 'fingerprint', title: 'Your Keys Only', desc: 'PBKDF2 key derivation runs in your browser. Your password is never transmitted anywhere.' },
               ].map(({ icon, title, desc }) => (
@@ -212,8 +224,6 @@ export default function Landing() {
                 ))}
               </ul>
             </div>
-
-            {/* Code block */}
             <div className="bg-slate-900 rounded-xl overflow-hidden border border-white/5 shadow-2xl">
               <div className="px-6 py-3 flex items-center justify-between border-b border-white/5" style={{background:'#2f3445'}}>
                 <div className="flex gap-1.5">
@@ -248,27 +258,13 @@ export default function Landing() {
             </div>
             <div className="grid md:grid-cols-3 gap-6">
               {[
-                {
-                  quote: "Finally a file sharing tool that actually practices what it preaches. The zero-knowledge model is real — I verified it myself.",
-                  name: "Alex R.",
-                  role: "Penetration Tester"
-                },
-                {
-                  quote: "We switched our entire team to Veilora for sharing client documents. The encryption happens before upload — that's the only way I trust cloud storage.",
-                  name: "Priya M.",
-                  role: "CISO, FinTech Startup"
-                },
-                {
-                  quote: "Simple enough for non-technical users, strong enough for security engineers. That balance is incredibly hard to achieve.",
-                  name: "Jordan K.",
-                  role: "Security Engineer"
-                },
+                { quote: "Finally a file sharing tool that actually practices what it preaches. The zero-knowledge model is real — I verified it myself.", name: "Alex R.", role: "Penetration Tester" },
+                { quote: "We switched our entire team to Veilora for sharing client documents. The encryption happens before upload — that's the only way I trust cloud storage.", name: "Priya M.", role: "CISO, FinTech Startup" },
+                { quote: "Simple enough for non-technical users, strong enough for security engineers. That balance is incredibly hard to achieve.", name: "Jordan K.", role: "Security Engineer" },
               ].map(({ quote, name, role }) => (
                 <div key={name} className="glass-panel p-8 rounded-xl flex flex-col gap-6">
                   <div className="flex gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i} className="text-[#bec2ff] text-lg">★</span>
-                    ))}
+                    {[...Array(5)].map((_, i) => <span key={i} className="text-[#bec2ff] text-lg">★</span>)}
                   </div>
                   <p className="text-[#c7c4d8] leading-relaxed flex-1">"{quote}"</p>
                   <div>
@@ -282,7 +278,7 @@ export default function Landing() {
         </section>
 
         {/* CTA */}
-        <section className="py-32 relative" style={{background:'#090e1c'}}>
+        <section id="cta" className="py-32 relative" style={{background:'#090e1c'}}>
           <div className="max-w-4xl mx-auto px-8 text-center space-y-10 relative z-10">
             <h2 className="text-5xl md:text-6xl font-black tracking-tight text-white">Ready to share files the private way?</h2>
             <p className="text-xl text-[#c7c4d8] font-medium">Join security-conscious professionals who trust Veilora for their sensitive data.</p>
@@ -291,8 +287,7 @@ export default function Landing() {
                 className="button-gradient text-[#000da4] px-10 py-5 rounded-full font-bold text-xl shadow-2xl hover:scale-105 transition-transform">
                 Create Free Account
               </button>
-              <a href="https://github.com/AronJoseph96/Veilora"
-                target="_blank" rel="noopener noreferrer"
+              <a href="https://github.com/AronJoseph96/Veilora" target="_blank" rel="noopener noreferrer"
                 className="border px-10 py-5 rounded-full font-bold text-xl hover:bg-white/5 transition-colors text-[#dee1f7] flex items-center gap-3"
                 style={{borderColor:'rgba(70,69,85,0.3)'}}>
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -313,7 +308,7 @@ export default function Landing() {
         <div className="flex flex-col md:flex-row justify-between items-start gap-12 max-w-7xl mx-auto">
           <div className="space-y-4 max-w-xs">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#818cf8]">security</span>
+              <img src="/logo.jpeg" alt="Veilora" className="h-8 w-auto rounded-lg" />
               <span className="text-lg font-bold text-white">Veilora</span>
             </div>
             <p className="text-slate-500 text-sm font-medium leading-relaxed">
@@ -325,9 +320,9 @@ export default function Landing() {
               {
                 title: 'Platform',
                 links: [
-                  { label: 'Features', action: () => document.getElementById('features').scrollIntoView({ behavior: 'smooth' }) },
-                  { label: 'How it works', action: () => document.getElementById('howitworks').scrollIntoView({ behavior: 'smooth' }) },
-                  { label: 'Security', action: () => document.getElementById('security').scrollIntoView({ behavior: 'smooth' }) },
+                  { label: 'How It Works', action: () => scrollTo('howitworks') },
+                  { label: 'Features', action: () => scrollTo('features') },
+                  { label: 'Security', action: () => scrollTo('security') },
                 ]
               },
               {
@@ -370,14 +365,12 @@ export default function Landing() {
         </div>
         <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-slate-500 text-sm font-medium">© 2025 Veilora. All rights reserved.</p>
-          <div className="flex gap-6">
-            <a href="https://github.com/AronJoseph96/Veilora" target="_blank" rel="noopener noreferrer"
-              className="text-slate-500 hover:text-white transition-colors">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-              </svg>
-            </a>
-          </div>
+          <a href="https://github.com/AronJoseph96/Veilora" target="_blank" rel="noopener noreferrer"
+            className="text-slate-500 hover:text-white transition-colors">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+          </a>
         </div>
       </footer>
     </div>
