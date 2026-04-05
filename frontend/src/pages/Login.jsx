@@ -206,13 +206,12 @@ export default function Login() {
             src="/logo.png"
             alt="Veilora"
             style={{
-              height: 72,
+              height: 96,
               width: 'auto',
               marginBottom: 8,
               filter: dark ? 'brightness(0) invert(1)' : 'none',
             }}
           />
-          <span style={{ fontSize: 13, color: textSecondary, marginTop: 2 }}>Zero-knowledge file sharing</span>
         </div>
 
         {/* Heading */}

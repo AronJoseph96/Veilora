@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { toast, Toaster } from '../toast'
 import { useDropzone } from 'react-dropzone'
 import { supabase } from '../supabase'
@@ -40,6 +40,23 @@ function formatSize(bytes) {
   if (bytes < 1024) return bytes + ' B'
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+}
+
+// ─── File skeleton loader ─────────────────────────────────────────────────────
+function FileSkeleton({ dark }) {
+  const bg = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:12, padding:'14px 16px' }}>
+      <div style={{ width:38, height:38, borderRadius:11, background:bg, flexShrink:0 }} />
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ height:13, borderRadius:6, background:bg, width:'55%', marginBottom:8 }} />
+        <div style={{ height:11, borderRadius:6, background:bg, width:'30%' }} />
+      </div>
+      <div style={{ display:'flex', gap:6 }}>
+        {[0,1,2].map(i => <div key={i} style={{ width:30, height:30, borderRadius:8, background:bg }} />)}
+      </div>
+    </div>
+  )
 }
 
 // ─── Download password modal ──────────────────────────────────────────────────
@@ -105,6 +122,7 @@ function ShareModal({ onConfirm, onCancel, tokens }) {
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [files, setFiles]               = useState([])
+  const [filesLoading, setFilesLoading] = useState(true)  // FIX #2: track loading state
   const [password, setPassword]         = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [uploading, setUploading]       = useState(false)
@@ -113,6 +131,8 @@ export default function Dashboard() {
   const [user, setUser]                 = useState(null)
   const [deletingId, setDeletingId]     = useState(null)
   const [activeNav, setActiveNav]       = useState('files')
+  // FIX #3: use state for isMobile so it's reactive to resize
+  const [isMobile, setIsMobile]         = useState(() => window.innerWidth < 900)
   const [sidebarOpen, setSidebarOpen]   = useState(() => window.innerWidth >= 900)
   const [downloadModal, setDownloadModal] = useState(null)
   const [shareModal, setShareModal]     = useState(null)
@@ -125,13 +145,26 @@ export default function Dashboard() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user))
     loadFiles()
-    function onResize() { if (window.innerWidth < 900) setSidebarOpen(false) }
+
+    // FIX #3: reactive resize handler
+    function onResize() {
+      const mobile = window.innerWidth < 900
+      setIsMobile(mobile)
+      if (!mobile) setSidebarOpen(true)
+      else setSidebarOpen(false)
+    }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
+  // FIX #2: show loading skeleton, don't flash "no files"
   async function loadFiles() {
-    try { const { data } = await api.get('/api/files'); setFiles(data) } catch {}
+    setFilesLoading(true)
+    try {
+      const { data } = await api.get('/api/files')
+      setFiles(data)
+    } catch {}
+    setFilesLoading(false)
   }
 
   const onDrop = useCallback(async (accepted) => {
@@ -143,7 +176,11 @@ export default function Dashboard() {
       const { data } = await api.post('/api/files/upload-url', { name: file.name, size: file.size, mimeType: file.type, iv, salt })
       await fetch(data.signedUrl, { method: 'PUT', body: encryptedBlob, headers: { 'Content-Type': 'application/octet-stream', 'x-upsert': 'true' } })
       toast.success(`"${file.name}" encrypted & uploaded!`)
-      loadFiles(); setActiveNav('files')
+      // FIX #2: optimistically prepend the file so it appears instantly, then sync
+      setFiles(prev => [data.file, ...prev])
+      setActiveNav('files')
+      // background sync to make sure order/metadata is accurate
+      api.get('/api/files').then(r => setFiles(r.data)).catch(() => {})
     } catch (e) { toast.error('Upload failed: ' + e.message) }
     setUploading(false)
   }, [password])
@@ -204,25 +241,25 @@ export default function Dashboard() {
   const navActive     = d ? 'rgba(108,99,245,0.15)'      : 'rgba(26,23,20,0.07)'
   const navActiveL    = d ? '#6c63f5'                    : '#1a1714'
   const shadow        = d ? '0 1px 3px rgba(0,0,0,0.5)' : '0 1px 3px rgba(0,0,0,0.06)'
+  const bottomNav     = d ? '#111118'                    : '#ffffff'
   const tokens = { card, cardBorder, textPrimary, textSecondary, accent, accentLight, inputBg, inputBorder }
 
   const totalSize = files.reduce((a, f) => a + (f.size || 0), 0)
 
   function navClick(id) {
     setActiveNav(id)
-    if (window.innerWidth < 900) setSidebarOpen(false)
+    if (isMobile) setSidebarOpen(false)
   }
 
-  // ── Input style (as object for inline use) ────────────────────────────────────
   const inputStyle = { width:'100%', padding:'12px 14px', borderRadius:11, border:`1.5px solid ${inputBorder}`, background:inputBg, color:textPrimary, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:'none' }
 
   // ── Content ───────────────────────────────────────────────────────────────────
   const renderContent = () => {
     if (activeNav === 'upload') return (
       <div>
-        <h2 style={{ fontSize:22, fontWeight:700, color:textPrimary, marginBottom:6, fontFamily:"'DM Serif Display',serif" }}>Upload a File</h2>
+        <h2 style={{ fontSize:isMobile?18:22, fontWeight:700, color:textPrimary, marginBottom:6, fontFamily:"'DM Serif Display',serif" }}>Upload a File</h2>
         <p style={{ fontSize:14, color:textSecondary, marginBottom:24 }}>Files are encrypted in your browser. The server never sees your data.</p>
-        <div style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:16, padding:24, marginBottom:20, boxShadow:shadow }}>
+        <div style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:16, padding:isMobile?16:24, marginBottom:20, boxShadow:shadow }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
             <span style={{ color:accent }}>{Icon.key}</span>
             <span style={{ fontSize:14, fontWeight:600, color:textPrimary }}>Encryption Password</span>
@@ -238,7 +275,7 @@ export default function Dashboard() {
           </div>
           <p style={{ fontSize:12, color:textMuted, marginTop:10 }}>This password never leaves your browser — the server has zero knowledge of it.</p>
         </div>
-        <div {...getRootProps()} style={{ background: isDragActive ? accentLight : card, border:`2px dashed ${isDragActive ? accent : cardBorder}`, borderRadius:16, padding:'52px 24px', textAlign:'center', cursor:'pointer', transition:'all 0.2s', boxShadow:shadow }}>
+        <div {...getRootProps()} style={{ background: isDragActive ? accentLight : card, border:`2px dashed ${isDragActive ? accent : cardBorder}`, borderRadius:16, padding:isMobile?'36px 16px':'52px 24px', textAlign:'center', cursor:'pointer', transition:'all 0.2s', boxShadow:shadow }}>
           <input {...getInputProps()} />
           {uploading ? (
             <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14 }}>
@@ -248,8 +285,8 @@ export default function Dashboard() {
           ) : (
             <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
               <div style={{ width:56, height:56, borderRadius:16, background:accentLight, display:'flex', alignItems:'center', justifyContent:'center', color:accent }}>{Icon.cloud}</div>
-              <p style={{ fontWeight:600, color:textPrimary, fontSize:15 }}>{isDragActive ? 'Drop to encrypt & upload' : 'Drag & drop your file here'}</p>
-              <p style={{ fontSize:13, color:textSecondary }}>or tap to browse — encrypted before leaving your device</p>
+              <p style={{ fontWeight:600, color:textPrimary, fontSize:15 }}>{isDragActive ? 'Drop to encrypt & upload' : 'Tap to choose a file'}</p>
+              <p style={{ fontSize:13, color:textSecondary }}>Encrypted before leaving your device</p>
             </div>
           )}
         </div>
@@ -258,7 +295,7 @@ export default function Dashboard() {
 
     if (activeNav === 'share') return (
       <div>
-        <h2 style={{ fontSize:22, fontWeight:700, color:textPrimary, marginBottom:6, fontFamily:"'DM Serif Display',serif" }}>Share Links</h2>
+        <h2 style={{ fontSize:isMobile?18:22, fontWeight:700, color:textPrimary, marginBottom:6, fontFamily:"'DM Serif Display',serif" }}>Share Links</h2>
         <p style={{ fontSize:14, color:textSecondary, marginBottom:24 }}>Generate secure share links. Recipients need your password to decrypt.</p>
         {files.length === 0 ? (
           <div style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:16, padding:'48px 24px', textAlign:'center', boxShadow:shadow }}>
@@ -267,10 +304,10 @@ export default function Dashboard() {
         ) : files.map(file => (
           <div key={file.id} style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:16, padding:'16px 18px', boxShadow:shadow, marginBottom:12 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:12, minWidth:0 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:12, minWidth:0, flex:1 }}>
                 <div style={{ width:38, height:38, borderRadius:10, background:accentLight, display:'flex', alignItems:'center', justifyContent:'center', color:accent, flexShrink:0 }}>{Icon.files}</div>
-                <div style={{ minWidth:0 }}>
-                  <p style={{ fontWeight:600, color:textPrimary, fontSize:14, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'min(200px,50vw)' }}>{file.name}</p>
+                <div style={{ minWidth:0, flex:1 }}>
+                  <p style={{ fontWeight:600, color:textPrimary, fontSize:14, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{file.name}</p>
                   <p style={{ fontSize:12, color:textSecondary }}>{formatSize(file.size)}</p>
                 </div>
               </div>
@@ -293,9 +330,9 @@ export default function Dashboard() {
 
     if (activeNav === 'security') return (
       <div>
-        <h2 style={{ fontSize:22, fontWeight:700, color:textPrimary, marginBottom:6, fontFamily:"'DM Serif Display',serif" }}>Security Overview</h2>
+        <h2 style={{ fontSize:isMobile?18:22, fontWeight:700, color:textPrimary, marginBottom:6, fontFamily:"'DM Serif Display',serif" }}>Security Overview</h2>
         <p style={{ fontSize:14, color:textSecondary, marginBottom:24 }}>How Veilora keeps your data safe.</p>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:14 }}>
+        <div style={{ display:'grid', gridTemplateColumns:isMobile?'1fr':'repeat(auto-fill,minmax(220px,1fr))', gap:14 }}>
           {[
             { title:'AES-256-GCM', desc:'Military-grade encryption applied in your browser before any data is sent.', badge:'Active' },
             { title:'Zero Knowledge', desc:'Your password never leaves your device. Server stores only encrypted blobs.', badge:'Verified' },
@@ -316,20 +353,20 @@ export default function Dashboard() {
 
     if (activeNav === 'settings') return (
       <div>
-        <h2 style={{ fontSize:22, fontWeight:700, color:textPrimary, marginBottom:6, fontFamily:"'DM Serif Display',serif" }}>Settings</h2>
+        <h2 style={{ fontSize:isMobile?18:22, fontWeight:700, color:textPrimary, marginBottom:6, fontFamily:"'DM Serif Display',serif" }}>Settings</h2>
         <p style={{ fontSize:14, color:textSecondary, marginBottom:24 }}>Manage your account and preferences.</p>
         <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-          <div style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:16, padding:24, boxShadow:shadow }}>
+          <div style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:16, padding:isMobile?16:24, boxShadow:shadow }}>
             <p style={{ fontSize:12, fontWeight:700, color:textSecondary, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:14 }}>Account</p>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
-              <div>
-                <p style={{ fontSize:14, fontWeight:600, color:textPrimary }}>{user?.email}</p>
+              <div style={{ minWidth:0, flex:1 }}>
+                <p style={{ fontSize:14, fontWeight:600, color:textPrimary, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{user?.email}</p>
                 <p style={{ fontSize:12, color:textSecondary, marginTop:2 }}>via {user?.app_metadata?.provider || 'email'}</p>
               </div>
-              <button onClick={() => supabase.auth.signOut()} style={{ padding:'9px 18px', borderRadius:10, border:`1px solid ${d?'rgba(239,68,68,0.3)':'#fecaca'}`, background:d?'rgba(239,68,68,0.08)':'#fef2f2', color:'#ef4444', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:"'DM Sans',sans-serif" }}>Sign out</button>
+              <button onClick={() => supabase.auth.signOut()} style={{ padding:'9px 18px', borderRadius:10, border:`1px solid ${d?'rgba(239,68,68,0.3)':'#fecaca'}`, background:d?'rgba(239,68,68,0.08)':'#fef2f2', color:'#ef4444', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:"'DM Sans',sans-serif", flexShrink:0 }}>Sign out</button>
             </div>
           </div>
-          <div style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:16, padding:24, boxShadow:shadow }}>
+          <div style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:16, padding:isMobile?16:24, boxShadow:shadow }}>
             <p style={{ fontSize:12, fontWeight:700, color:textSecondary, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:14 }}>Appearance</p>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16 }}>
               <div>
@@ -348,15 +385,16 @@ export default function Dashboard() {
     // My Files
     return (
       <div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))', gap:12, marginBottom:24 }}>
+        {/* Stats */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:isMobile?8:12, marginBottom:isMobile?16:24 }}>
           {[
-            { label:'Encrypted Files', value: String(files.length) },
-            { label:'Total Stored',    value: formatSize(totalSize) },
-            { label:'Encryption',      value: 'AES-256-GCM' },
+            { label:'Files', value: filesLoading ? '—' : String(files.length) },
+            { label:'Stored', value: filesLoading ? '—' : formatSize(totalSize) },
+            { label:'Cipher', value: 'AES-256' },
           ].map(({ label, value }) => (
-            <div key={label} style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:16, padding:'16px 18px', boxShadow:shadow }}>
-              <p style={{ fontSize:20, fontWeight:800, color:textPrimary, letterSpacing:'-0.5px', wordBreak:'break-word' }}>{value}</p>
-              <p style={{ fontSize:12, color:textSecondary, marginTop:4 }}>{label}</p>
+            <div key={label} style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:14, padding:isMobile?'12px 14px':'16px 18px', boxShadow:shadow }}>
+              <p style={{ fontSize:isMobile?16:20, fontWeight:800, color:textPrimary, letterSpacing:'-0.5px', wordBreak:'break-word' }}>{value}</p>
+              <p style={{ fontSize:11, color:textSecondary, marginTop:3 }}>{label}</p>
             </div>
           ))}
         </div>
@@ -364,36 +402,46 @@ export default function Dashboard() {
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14, flexWrap:'wrap', gap:10 }}>
           <h2 style={{ fontSize:16, fontWeight:700, color:textPrimary }}>Your Files</h2>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <span style={{ fontSize:12, padding:'4px 12px', borderRadius:999, background:accentLight, color:accent, fontWeight:600 }}>{files.length} files</span>
+            {!filesLoading && <span style={{ fontSize:12, padding:'4px 12px', borderRadius:999, background:accentLight, color:accent, fontWeight:600 }}>{files.length} files</span>}
             <button onClick={() => setActiveNav('upload')} style={{ padding:'8px 16px', borderRadius:10, border:'none', background:accent, color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:"'DM Sans',sans-serif" }}>+ Upload</button>
           </div>
         </div>
 
         <div style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:16, overflow:'hidden', boxShadow:shadow }}>
-          {files.length === 0 ? (
+          {/* FIX #2: show skeleton while loading */}
+          {filesLoading ? (
+            <div>
+              {[0,1,2].map(i => (
+                <div key={i} style={{ borderBottom: i < 2 ? `1px solid ${divider}` : 'none' }}>
+                  <FileSkeleton dark={d} />
+                </div>
+              ))}
+            </div>
+          ) : files.length === 0 ? (
             <div style={{ padding:'56px 24px', textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
               <div style={{ width:52, height:52, borderRadius:14, background:accentLight, display:'flex', alignItems:'center', justifyContent:'center', color:accent }}>{Icon.files}</div>
               <p style={{ color:textSecondary, fontSize:14 }}>No files uploaded yet</p>
               <button onClick={() => setActiveNav('upload')} style={{ padding:'9px 20px', borderRadius:10, border:'none', background:accent, color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:"'DM Sans',sans-serif" }}>Upload your first file</button>
             </div>
           ) : files.map((file, i) => (
-            <div key={file.id} style={{ padding:'14px 16px', borderBottom: i < files.length - 1 ? `1px solid ${divider}` : 'none', transition:'background 0.15s' }}
+            <div key={file.id} style={{ padding:isMobile?'12px 14px':'14px 16px', borderBottom: i < files.length - 1 ? `1px solid ${divider}` : 'none', transition:'background 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.background = hoverBg}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                <div style={{ width:38, height:38, borderRadius:11, background:accentLight, display:'flex', alignItems:'center', justifyContent:'center', color:accent, flexShrink:0 }}>{Icon.files}</div>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <div style={{ width:36, height:36, borderRadius:10, background:accentLight, display:'flex', alignItems:'center', justifyContent:'center', color:accent, flexShrink:0 }}>{Icon.files}</div>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ fontSize:14, fontWeight:600, color:textPrimary, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{file.name}</p>
-                  <p style={{ fontSize:12, color:textSecondary, marginTop:2 }}>{formatSize(file.size)} · {new Date(file.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })}</p>
+                  <p style={{ fontSize:13, fontWeight:600, color:textPrimary, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{file.name}</p>
+                  <p style={{ fontSize:11, color:textSecondary, marginTop:2 }}>{formatSize(file.size)} · {new Date(file.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })}</p>
                 </div>
-                <div style={{ display:'flex', alignItems:'center', gap:2, flexShrink:0 }}>
+                {/* FIX #3: action buttons — slightly smaller on mobile, always visible */}
+                <div style={{ display:'flex', alignItems:'center', gap:isMobile?1:2, flexShrink:0 }}>
                   {[
                     { ico: Icon.download, title:'Download', col: textPrimary,  fn: () => setDownloadModal(file) },
                     { ico: Icon.link,     title:'Share',    col: accent,        fn: () => setShareModal(file.id) },
                     { ico: Icon.trash,    title:'Delete',   col: '#ef4444',     fn: () => deleteFile(file.id) },
                   ].map(({ ico, title, col, fn }, idx) => (
                     <button key={idx} onClick={fn} title={title}
-                      style={{ width:34, height:34, borderRadius:9, border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:textSecondary, transition:'all 0.15s' }}
+                      style={{ width:isMobile?32:34, height:isMobile?32:34, borderRadius:9, border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:textSecondary, transition:'all 0.15s', WebkitTapHighlightColor:'transparent' }}
                       onMouseEnter={e => { e.currentTarget.style.background = hoverBg; e.currentTarget.style.color = col }}
                       onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = textSecondary }}>
                       {deletingId === file.id && idx === 2
@@ -404,7 +452,7 @@ export default function Dashboard() {
                 </div>
               </div>
               {shareLinks[file.id] && (
-                <div style={{ marginTop:10, padding:'8px 12px', borderRadius:10, background:inputBg, border:`1px solid ${inputBorder}`, display:'flex', alignItems:'center', gap:8 }}>
+                <div style={{ marginTop:8, padding:'8px 12px', borderRadius:10, background:inputBg, border:`1px solid ${inputBorder}`, display:'flex', alignItems:'center', gap:8 }}>
                   <span style={{ color:accent, flexShrink:0, display:'flex' }}>{Icon.link}</span>
                   <span style={{ fontSize:11, color:textSecondary, flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{shareLinks[file.id]}</span>
                   <button onClick={() => { navigator.clipboard.writeText(shareLinks[file.id]); toast.success('Copied!') }}
@@ -418,26 +466,25 @@ export default function Dashboard() {
     )
   }
 
-  const isMobile = window.innerWidth < 900
-
   return (
     <div style={{ display:'flex', minHeight:'100vh', background:bg, fontFamily:"'DM Sans','Helvetica Neue',sans-serif", transition:'background 0.3s', overflow:'hidden' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap');
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        @keyframes spin    { to { transform:rotate(360deg); } }
-        @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
-        @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-        ::-webkit-scrollbar { width:5px; }
+        @keyframes spin        { to { transform:rotate(360deg); } }
+        @keyframes fadeIn      { from{opacity:0} to{opacity:1} }
+        @keyframes slideUp     { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes shimmer     { 0%{opacity:0.5} 50%{opacity:1} 100%{opacity:0.5} }
+        ::-webkit-scrollbar    { width:5px; }
         ::-webkit-scrollbar-thumb { background:${d?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.1)'}; border-radius:99px; }
       `}</style>
 
-      {/* Mobile overlay — tap outside sidebar to close */}
+      {/* Mobile sidebar overlay */}
       {sidebarOpen && isMobile && (
         <div onClick={() => setSidebarOpen(false)} style={{ position:'fixed', inset:0, zIndex:150, background:'rgba(0,0,0,0.5)', backdropFilter:'blur(2px)', animation:'fadeIn 0.2s ease' }} />
       )}
 
-      {/* ── Sidebar ── */}
+      {/* ── Sidebar (desktop sticky / mobile drawer) ── */}
       <aside style={{
         position: isMobile ? 'fixed' : 'sticky',
         top:0, left:0, zIndex:160,
@@ -451,9 +498,13 @@ export default function Dashboard() {
         boxShadow: isMobile && sidebarOpen ? '4px 0 24px rgba(0,0,0,0.3)' : 'none',
       }}>
         <div style={{ width:240, height:'100%', display:'flex', flexDirection:'column' }}>
-          {/* Logo + close */}
-          <div style={{ padding:'18px 16px 14px', borderBottom:`1px solid ${sidebarBorder}`, display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
-            <img src="/logo.png" alt="Veilora" style={{ height:52, width:'auto', display:'block', filter: d ? 'brightness(0) invert(1)' : 'none' }} />
+          {/* FIX #1: Bigger logo, no span text */}
+          <div style={{ padding:'20px 16px 16px', borderBottom:`1px solid ${sidebarBorder}`, display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
+            <img
+              src="/logo.png"
+              alt="Veilora"
+              style={{ height:68, width:'auto', display:'block', filter: d ? 'brightness(0) invert(1)' : 'none' }}
+            />
             <button onClick={() => setSidebarOpen(false)} style={{ width:32, height:32, borderRadius:9, border:'none', background:hoverBg, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:textSecondary, flexShrink:0 }}>
               {Icon.close}
             </button>
@@ -506,24 +557,82 @@ export default function Dashboard() {
       </aside>
 
       {/* ── Main ── */}
-      <main style={{ flex:1, minWidth:0, overflowY:'auto', padding: isMobile ? '24px 16px' : '32px 40px' }}>
-        {/* Top bar with hamburger */}
-        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:28 }}>
-          <button onClick={() => setSidebarOpen(o => !o)} style={{ width:38, height:38, borderRadius:10, border:`1px solid ${cardBorder}`, background:card, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:textSecondary, flexShrink:0, boxShadow:shadow, transition:'background 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.background = hoverBg}
-            onMouseLeave={e => e.currentTarget.style.background = card}>
-            {Icon.menu}
-          </button>
-          <div style={{ display:'flex', alignItems:'center', gap:7 }}>
+      <main style={{
+        flex:1, minWidth:0, overflowY:'auto',
+        // FIX #3: extra bottom padding on mobile for the bottom nav bar
+        padding: isMobile ? '20px 14px 90px' : '32px 40px',
+      }}>
+        {/* Top bar */}
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:isMobile?20:28 }}>
+          {/* Hide hamburger on mobile since we have bottom nav; show on desktop */}
+          {!isMobile && (
+            <button onClick={() => setSidebarOpen(o => !o)} style={{ width:38, height:38, borderRadius:10, border:`1px solid ${cardBorder}`, background:card, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:textSecondary, flexShrink:0, boxShadow:shadow, transition:'background 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.background = hoverBg}
+              onMouseLeave={e => e.currentTarget.style.background = card}>
+              {Icon.menu}
+            </button>
+          )}
+          {/* FIX #1: Bigger logo in top bar on mobile */}
+          {isMobile && (
+            <img
+              src="/logo.png"
+              alt="Veilora"
+              style={{ height:48, width:'auto', filter: d ? 'brightness(0) invert(1)' : 'none' }}
+            />
+          )}
+          <div style={{ display:'flex', alignItems:'center', gap:7, marginLeft: isMobile ? 'auto' : 0 }}>
             <div style={{ width:6, height:6, borderRadius:'50%', background:'#22c55e', flexShrink:0 }} />
-            <span style={{ fontSize:13, color:textSecondary, fontWeight:500 }}>End-to-end encrypted</span>
+            <span style={{ fontSize:12, color:textSecondary, fontWeight:500 }}>E2E encrypted</span>
           </div>
+          {/* Dark mode toggle on mobile top bar */}
+          {isMobile && (
+            <button onClick={() => setDark(!d)} style={{ width:34, height:34, borderRadius:9, border:`1px solid ${cardBorder}`, background:card, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:textSecondary, flexShrink:0 }}>
+              {d ? Icon.sun : Icon.moon}
+            </button>
+          )}
         </div>
 
         {renderContent()}
       </main>
 
-      {/* ── Modals ── */}
+      {/* FIX #3: Mobile bottom navigation bar */}
+      {isMobile && (
+        <nav style={{
+          position:'fixed', bottom:0, left:0, right:0, zIndex:200,
+          background:bottomNav,
+          borderTop:`1px solid ${sidebarBorder}`,
+          display:'flex',
+          paddingBottom:'env(safe-area-inset-bottom, 0px)',
+          boxShadow:'0 -4px 24px rgba(0,0,0,0.12)',
+        }}>
+          {NAV.map(({ id, label, icon }) => {
+            const active = activeNav === id
+            return (
+              <button key={id} onClick={() => navClick(id)} style={{
+                flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+                gap:4, padding:'10px 4px 8px',
+                border:'none', background:'transparent', cursor:'pointer',
+                color: active ? (d ? '#a5a0ff' : '#1a1714') : textSecondary,
+                fontFamily:"'DM Sans',sans-serif",
+                WebkitTapHighlightColor:'transparent',
+                transition:'color 0.15s',
+              }}>
+                <div style={{
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  width:36, height:24, borderRadius:12,
+                  background: active ? accentLight : 'transparent',
+                  transition:'background 0.2s',
+                }}>
+                  {Icon[icon]}
+                </div>
+                <span style={{ fontSize:10, fontWeight: active ? 700 : 500, letterSpacing:'0.01em' }}>{label}</span>
+              </button>
+            )
+          })}
+        </nav>
+      )}
+
+      {/* Modals */}
       {downloadModal && (
         <DownloadModal file={downloadModal} tokens={tokens}
           onConfirm={pw => handleDownload(downloadModal, pw)}
