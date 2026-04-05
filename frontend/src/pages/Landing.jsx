@@ -95,8 +95,8 @@ export default function Landing() {
         <nav style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 48px', maxWidth:1280, margin:'0 auto'}}>
           <div style={{display:'flex', alignItems:'center', gap:10, cursor:'pointer'}}
             onClick={() => { scrollTo('hero'); setActiveSection('hero') }}>
-            <img src="/logo.png" alt="Veilora" className="logo-img" style={{height:56, width:'auto'}} />
-            <span style={{fontSize:26, fontWeight:900, color:'#fff', letterSpacing:'-0.5px'}}></span>
+            <img src="/logo.png" alt="Veilora" className="logo-img" style={{height:36, width:'auto'}} />
+            <span style={{fontSize:22, fontWeight:900, color:'#fff', letterSpacing:'-0.5px'}}>Veilora</span>
           </div>
 
           <div style={{display:'flex', alignItems:'center', gap:32}}>
@@ -122,16 +122,13 @@ export default function Landing() {
         <section id="hero" style={{
           position:'relative', minHeight:'100vh',
           display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-          paddingTop:120, paddingBottom:80, overflow:'hidden'
+          paddingTop:120, paddingBottom:80, overflow:'hidden',
+          backgroundImage:'url(/veilorabg.jpeg)',
+          backgroundSize:'cover', backgroundPosition:'center',
+          backgroundRepeat:'no-repeat',
         }}>
-          {/* BG image */}
-          <div style={{
-            position:'absolute', inset:0, zIndex:0,
-            backgroundImage:'url(/veilorabg.jpeg)',
-            backgroundSize:'cover', backgroundPosition:'center',
-            opacity:1.0
-          }}/>
-
+          {/* Dark overlay — replaces the low-opacity child div that caused blur */}
+          <div style={{position:'absolute', inset:0, zIndex:0, background:'rgba(10,13,26,0.80)'}}/>
           <div className="glow-orb" style={{position:'absolute', top:'20%', left:'10%', width:400, height:400, borderRadius:'50%', background:'rgba(79,70,229,0.08)', filter:'blur(80px)', zIndex:1}}/>
           <div className="glow-orb" style={{position:'absolute', bottom:'20%', right:'10%', width:300, height:300, borderRadius:'50%', background:'rgba(124,131,255,0.06)', filter:'blur(60px)', zIndex:1, animationDelay:'2s'}}/>
 
@@ -388,7 +385,7 @@ export default function Landing() {
             <div style={{maxWidth:280}}>
               <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:16}}>
                 <img src="/logo.png" alt="Veilora" className="logo-img" style={{height:32, width:'auto'}}/>
-                <span style={{fontSize:24, fontWeight:900, color:'#fff'}}></span>
+                <span style={{fontSize:18, fontWeight:800, color:'#fff'}}>Veilora</span>
               </div>
               <p style={{color:'#334155', fontSize:14, lineHeight:1.7}}>The sovereign vault for your digital assets. Privacy by default, security by mathematics.</p>
             </div>
