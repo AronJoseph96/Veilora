@@ -22,7 +22,7 @@ export default function Landing() {
         <nav className="flex justify-between items-center px-8 py-3 max-w-7xl mx-auto">
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <img src="/logo.jpeg" alt="Veilora" className="h-9 w-auto rounded-lg" />
+            <img src="/logo.png" alt="Veilora" className="h-9 w-auto rounded-lg" />
             <span className="text-2xl font-black tracking-tighter text-white">Veilora</span>
           </div>
 
@@ -308,7 +308,7 @@ export default function Landing() {
         <div className="flex flex-col md:flex-row justify-between items-start gap-12 max-w-7xl mx-auto">
           <div className="space-y-4 max-w-xs">
             <div className="flex items-center gap-2">
-              <img src="/logo.jpeg" alt="Veilora" className="h-8 w-auto rounded-lg" />
+              <img src="/logo.png" alt="Veilora" className="h-8 w-auto rounded-lg" />
               <span className="text-lg font-bold text-white">Veilora</span>
             </div>
             <p className="text-slate-500 text-sm font-medium leading-relaxed">
