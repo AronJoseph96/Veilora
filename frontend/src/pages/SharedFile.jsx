@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { toast, Toaster } from '../toast'
 import { useParams } from 'react-router-dom'
 import api from '../api'
 import { decryptFile } from '../crypto'
@@ -213,6 +214,7 @@ export default function SharedFile() {
           </div>
         )}
       </div>
+      <Toaster />
     </div>
   )
 }

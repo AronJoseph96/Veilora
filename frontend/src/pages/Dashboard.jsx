@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { toast, Toaster } from '../toast'
 import { useDropzone } from 'react-dropzone'
 import { supabase } from '../supabase'
 import api from '../api'
@@ -115,7 +116,6 @@ export default function Dashboard() {
   const [showPassword, setShowPassword] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [shareLinks, setShareLinks] = useState({})
-  const [msg, setMsg] = useState({ text: '', type: '' })
   const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark')
   const [user, setUser] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
@@ -136,16 +136,16 @@ export default function Dashboard() {
   }
 
   const onDrop = useCallback(async (accepted) => {
-    if (!password) return setMsg({ text: 'Enter an encryption password before uploading.', type: 'error' })
+    if (!password) return toast.error('Enter an encryption password before uploading.')
     const file = accepted[0]
     setUploading(true); setMsg({ text: '', type: '' })
     try {
       const { encryptedBlob, iv, salt } = await encryptFile(file, password)
       const { data } = await api.post('/api/files/upload-url', { name: file.name, size: file.size, mimeType: file.type, iv, salt })
       await fetch(data.signedUrl, { method: 'PUT', body: encryptedBlob, headers: { 'Content-Type': 'application/octet-stream', 'x-upsert': 'true' } })
-      setMsg({ text: `"${file.name}" encrypted and uploaded!`, type: 'success' })
+      toast.success(`"${file.name}" encrypted and uploaded!`)
       loadFiles(); setActiveNav('files')
-    } catch (e) { setMsg({ text: 'Upload failed: ' + e.message, type: 'error' }) }
+    } catch (e) { toast.error('Upload failed: ' + e.message) }
     setUploading(false)
   }, [password])
 
@@ -162,7 +162,7 @@ export default function Dashboard() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a'); a.href = url; a.download = file.name; a.click()
       URL.revokeObjectURL(url)
-    } catch { alert('Decryption failed. Wrong password?') }
+    } catch { toast.error('Decryption failed — wrong password?') }
   }
 
   async function createShareLink(fileId) {
@@ -170,12 +170,15 @@ export default function Dashboard() {
     const { data } = await api.post('/api/share', { fileId, expiresInHours: hours ? parseInt(hours) : null })
     const link = `${window.location.origin}/share/${data.token}`
     setShareLinks(prev => ({ ...prev, [fileId]: link }))
+    navigator.clipboard.writeText(link).catch(() => {})
+    toast.success('Share link copied to clipboard!')
   }
 
   async function deleteFile(id) {
     if (!confirm('Delete this file permanently?')) return
     setDeletingId(id); await api.delete(`/api/files/${id}`)
     setFiles(prev => prev.filter(f => f.id !== id)); setDeletingId(null)
+    toast.success('File deleted successfully.')
   }
 
   // Theme tokens — warm light matching login, deep dark
@@ -253,15 +256,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {msg.text && (
-          <div style={{ marginTop: 16, padding: '12px 16px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10, fontSize: 14,
-            background: msg.type === 'success' ? (d ? 'rgba(34,197,94,0.1)' : '#f0fdf4') : (d ? 'rgba(239,68,68,0.1)' : '#fef2f2'),
-            border: `1px solid ${msg.type === 'success' ? (d ? 'rgba(34,197,94,0.2)' : '#bbf7d0') : (d ? 'rgba(239,68,68,0.2)' : '#fecaca')}`,
-            color: msg.type === 'success' ? '#22c55e' : '#ef4444',
-          }}>
-            <span>{msg.type === 'success' ? '✓' : '!'}</span> {msg.text}
-          </div>
-        )}
+
       </div>
     )
 
@@ -483,7 +478,7 @@ export default function Dashboard() {
         <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${sidebarBorder}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <img src="/logo.png" alt="Veilora" style={{ height: 36, width: 'auto', filter: d ? 'brightness(0) invert(1)' : 'none' }} />
-            <span style={{ fontSize: 18, fontWeight: 800, color: textPrimary, letterSpacing: '-0.3px', fontFamily: "'DM Serif Display', serif" }}>Veilora</span>
+            <span style={{ fontSize: 28, fontWeight: 900, color: textPrimary, letterSpacing: '-0.3px', fontFamily: "'DM Serif Display', serif" }}></span>
           </div>
         </div>
 
@@ -561,6 +556,7 @@ export default function Dashboard() {
 
         {renderContent()}
       </main>
+      <Toaster dark={d} />
     </div>
   )
 }

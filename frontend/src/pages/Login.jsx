@@ -204,7 +204,6 @@ export default function Login() {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
           <img
             src="/logo.png"
-            alt="Veilora"
             style={{
               height: 52,
               width: 'auto',
@@ -213,7 +212,7 @@ export default function Login() {
             }}
           />
           <span style={{ fontSize: 22, fontWeight: 700, color: textPrimary, letterSpacing: '-0.3px', fontFamily: "'DM Serif Display', serif" }}>
-            Veilora
+            Welcome to Veilora
           </span>
           <span style={{ fontSize: 13, color: textSecondary, marginTop: 2 }}>Zero-knowledge file sharing</span>
         </div>
