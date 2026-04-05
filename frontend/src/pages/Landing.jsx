@@ -96,7 +96,7 @@ export default function Landing() {
           <div style={{display:'flex', alignItems:'center', gap:10, cursor:'pointer'}}
             onClick={() => { scrollTo('hero'); setActiveSection('hero') }}>
             <img src="/logo.png" alt="Veilora" className="logo-img" style={{height:56, width:'auto'}} />
-            <span style={{fontSize:22, fontWeight:900, color:'#fff', letterSpacing:'-0.5px'}}>Veilora</span>
+            <span style={{fontSize:26, fontWeight:900, color:'#fff', letterSpacing:'-0.5px'}}></span>
           </div>
 
           <div style={{display:'flex', alignItems:'center', gap:32}}>
@@ -129,7 +129,7 @@ export default function Landing() {
             position:'absolute', inset:0, zIndex:0,
             backgroundImage:'url(/veilorabg.jpeg)',
             backgroundSize:'cover', backgroundPosition:'center',
-            opacity:0.18
+            opacity:0.50
           }}/>
 
           <div className="glow-orb" style={{position:'absolute', top:'20%', left:'10%', width:400, height:400, borderRadius:'50%', background:'rgba(79,70,229,0.08)', filter:'blur(80px)', zIndex:1}}/>
@@ -388,7 +388,7 @@ export default function Landing() {
             <div style={{maxWidth:280}}>
               <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:16}}>
                 <img src="/logo.png" alt="Veilora" className="logo-img" style={{height:32, width:'auto'}}/>
-                <span style={{fontSize:18, fontWeight:800, color:'#fff'}}>Veilora</span>
+                <span style={{fontSize:24, fontWeight:900, color:'#fff'}}></span>
               </div>
               <p style={{color:'#334155', fontSize:14, lineHeight:1.7}}>The sovereign vault for your digital assets. Privacy by default, security by mathematics.</p>
             </div>
