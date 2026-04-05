@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 
 export default function Login() {
@@ -9,6 +10,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark')
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark)
@@ -28,7 +31,7 @@ export default function Login() {
   async function handleGoogle() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin }
+      options: { redirectTo: `${window.location.origin}/dashboard` }
     })
   }
 
@@ -161,6 +164,26 @@ export default function Login() {
             <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
           </svg>
         )}
+      </button>
+
+      {/* Back to Home */}
+      <button
+        onClick={() => navigate('/')}
+        style={{
+          position: 'fixed', top: 20, left: 20,
+          display: 'flex', alignItems: 'center', gap: 6,
+          background: toggleBg, border: `1.5px solid ${toggleBorder}`,
+          color: textSecondary, borderRadius: 12, padding: '9px 16px',
+          fontSize: 13, fontWeight: 500, fontFamily: "'DM Sans', sans-serif",
+          cursor: 'pointer', transition: 'all 0.2s ease', zIndex: 100,
+        }}
+        onMouseEnter={e => { e.currentTarget.style.color = textPrimary; e.currentTarget.style.transform = 'translateX(-2px)' }}
+        onMouseLeave={e => { e.currentTarget.style.color = textSecondary; e.currentTarget.style.transform = 'translateX(0)' }}
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Home
       </button>
 
       {/* Card */}

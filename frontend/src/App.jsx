@@ -21,7 +21,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={session ? <Navigate to="/dashboard" /> : <Landing />} />
         <Route path="/login" element={!session ? <Login /> : <Navigate to="/dashboard" />} />
         <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/login" />} />
         <Route path="/share/:token" element={<SharedFile />} />
