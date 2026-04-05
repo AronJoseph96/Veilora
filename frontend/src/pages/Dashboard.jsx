@@ -4,6 +4,111 @@ import { supabase } from '../supabase'
 import api from '../api'
 import { encryptFile, decryptFile } from '../crypto'
 
+const ICONS = {
+  files: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+    </svg>
+  ),
+  upload: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+      <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
+    </svg>
+  ),
+  share: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+    </svg>
+  ),
+  security: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  ),
+  settings: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+    </svg>
+  ),
+  signout: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+  ),
+  download: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+  ),
+  trash: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+    </svg>
+  ),
+  link: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+    </svg>
+  ),
+  key: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+    </svg>
+  ),
+  sun: (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  ),
+  moon: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+    </svg>
+  ),
+  lock: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+    </svg>
+  ),
+  eye: (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+    </svg>
+  ),
+  eyeOff: (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>
+    </svg>
+  ),
+  cloud: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+      <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
+    </svg>
+  ),
+}
+
+function formatSize(bytes) {
+  if (!bytes) return '0 B'
+  if (bytes < 1024) return bytes + ' B'
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+}
+
+const NAV = [
+  { id: 'files', label: 'My Files', icon: 'files' },
+  { id: 'upload', label: 'Upload', icon: 'upload' },
+  { id: 'share', label: 'Share Links', icon: 'share' },
+  { id: 'security', label: 'Security', icon: 'security' },
+  { id: 'settings', label: 'Settings', icon: 'settings' },
+]
+
 export default function Dashboard() {
   const [files, setFiles] = useState([])
   const [password, setPassword] = useState('')
@@ -14,6 +119,7 @@ export default function Dashboard() {
   const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark')
   const [user, setUser] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
+  const [activeNav, setActiveNav] = useState('files')
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark)
@@ -26,32 +132,20 @@ export default function Dashboard() {
   }, [])
 
   async function loadFiles() {
-    try {
-      const { data } = await api.get('/api/files')
-      setFiles(data)
-    } catch {}
+    try { const { data } = await api.get('/api/files'); setFiles(data) } catch {}
   }
 
   const onDrop = useCallback(async (accepted) => {
     if (!password) return setMsg({ text: 'Enter an encryption password before uploading.', type: 'error' })
     const file = accepted[0]
-    setUploading(true)
-    setMsg({ text: '', type: '' })
+    setUploading(true); setMsg({ text: '', type: '' })
     try {
       const { encryptedBlob, iv, salt } = await encryptFile(file, password)
-      const { data } = await api.post('/api/files/upload-url', {
-        name: file.name, size: file.size, mimeType: file.type, iv, salt
-      })
-      await fetch(data.signedUrl, {
-        method: 'PUT',
-        body: encryptedBlob,
-        headers: { 'Content-Type': 'application/octet-stream', 'x-upsert': 'true' }
-      })
-      setMsg({ text: `"${file.name}" encrypted and uploaded successfully.`, type: 'success' })
-      loadFiles()
-    } catch (e) {
-      setMsg({ text: 'Upload failed: ' + e.message, type: 'error' })
-    }
+      const { data } = await api.post('/api/files/upload-url', { name: file.name, size: file.size, mimeType: file.type, iv, salt })
+      await fetch(data.signedUrl, { method: 'PUT', body: encryptedBlob, headers: { 'Content-Type': 'application/octet-stream', 'x-upsert': 'true' } })
+      setMsg({ text: `"${file.name}" encrypted and uploaded!`, type: 'success' })
+      loadFiles(); setActiveNav('files')
+    } catch (e) { setMsg({ text: 'Upload failed: ' + e.message, type: 'error' }) }
     setUploading(false)
   }, [password])
 
@@ -61,223 +155,412 @@ export default function Dashboard() {
     const pw = prompt(`Enter decryption password for "${file.name}"`)
     if (!pw) return
     try {
-      // Get signed URL from backend instead of direct Supabase call
       const { data } = await api.get(`/api/files/${file.id}/download-url`)
       const res = await fetch(data.signedUrl)
       const buf = await res.arrayBuffer()
       const blob = await decryptFile(buf, pw, file.iv, file.salt, file.mime_type)
       const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url; a.download = file.name; a.click()
+      const a = document.createElement('a'); a.href = url; a.download = file.name; a.click()
       URL.revokeObjectURL(url)
-    } catch (e) {
-      alert('Decryption failed. Wrong password?')
-    }
+    } catch { alert('Decryption failed. Wrong password?') }
   }
 
   async function createShareLink(fileId) {
     const hours = prompt('Expire after how many hours? (leave blank = never)')
-    const { data } = await api.post('/api/share', {
-      fileId, expiresInHours: hours ? parseInt(hours) : null
-    })
+    const { data } = await api.post('/api/share', { fileId, expiresInHours: hours ? parseInt(hours) : null })
     const link = `${window.location.origin}/share/${data.token}`
     setShareLinks(prev => ({ ...prev, [fileId]: link }))
   }
 
   async function deleteFile(id) {
     if (!confirm('Delete this file permanently?')) return
-    setDeletingId(id)
-    await api.delete(`/api/files/${id}`)
-    setFiles(prev => prev.filter(f => f.id !== id))
-    setDeletingId(null)
+    setDeletingId(id); await api.delete(`/api/files/${id}`)
+    setFiles(prev => prev.filter(f => f.id !== id)); setDeletingId(null)
   }
 
-  function formatSize(bytes) {
-    if (bytes < 1024) return bytes + ' B'
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
-  }
-
+  // Theme tokens — warm light matching login, deep dark
   const d = dark
+  const bg = d ? '#0c0c12' : '#f5f0eb'
+  const sidebar = d ? '#111118' : '#ffffff'
+  const sidebarBorder = d ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)'
+  const main = d ? '#0f0f17' : '#f5f0eb'
+  const card = d ? '#17171f' : '#ffffff'
+  const cardBorder = d ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'
+  const textPrimary = d ? '#eeeaf4' : '#1a1714'
+  const textSecondary = d ? '#5e5b70' : '#9a9289'
+  const textMuted = d ? '#2e2b3a' : '#c8c0b8'
+  const accent = d ? '#6c63f5' : '#1a1714'
+  const accentLight = d ? 'rgba(108,99,245,0.12)' : 'rgba(26,23,20,0.06)'
+  const inputBg = d ? '#0f0f17' : '#f9f7f5'
+  const inputBorder = d ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
+  const divider = d ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)'
+  const hoverBg = d ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'
+  const navActive = d ? 'rgba(108,99,245,0.15)' : 'rgba(26,23,20,0.07)'
+  const navActiveBorder = d ? '#6c63f5' : '#1a1714'
+  const shadow = d ? '0 1px 3px rgba(0,0,0,0.5)' : '0 1px 3px rgba(0,0,0,0.06)'
 
-  return (
-    <div className={`min-h-screen transition-colors duration-300 ${d ? 'bg-gray-950 text-white' : 'bg-slate-50 text-gray-900'}`}>
-      {/* Navbar */}
-      <nav className={`sticky top-0 z-10 border-b backdrop-blur-md ${d ? 'bg-gray-900/80 border-gray-800' : 'bg-white/80 border-gray-200'}`}>
-        <div className="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-            </div>
-            <span className={`font-bold text-lg ${d ? 'text-white' : 'text-gray-900'}`}>Veilora</span>
-          </div>
-          <div className="flex items-center gap-3">
-            {user && <span className={`text-sm hidden sm:block ${d ? 'text-gray-400' : 'text-gray-500'}`}>{user.email}</span>}
-            <button onClick={() => setDark(!d)}
-              className={`p-2 rounded-xl border transition-all ${d ? 'bg-gray-800 border-gray-700 text-yellow-400 hover:bg-gray-700' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-              {d ? (
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 1.78a1 1 0 011.42 1.42l-.7.7a1 1 0 11-1.42-1.42l.7-.7zM18 9a1 1 0 110 2h-1a1 1 0 110-2h1zM5.78 4.22a1 1 0 010 1.42l-.7.7A1 1 0 113.66 4.92l.7-.7a1 1 0 011.42 0zM4 10a1 1 0 110 2H3a1 1 0 110-2h1zm1.07 4.93a1 1 0 011.42 0l.7.7a1 1 0 11-1.42 1.42l-.7-.7a1 1 0 010-1.42zM10 16a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm4.93-1.07a1 1 0 010 1.42l-.7.7a1 1 0 11-1.42-1.42l.7-.7a1 1 0 011.42 0zM10 6a4 4 0 100 8 4 4 0 000-8z"/></svg>
-              ) : (
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
-              )}
-            </button>
-            <button onClick={() => supabase.auth.signOut()}
-              className={`text-sm px-4 py-1.5 rounded-xl border font-medium transition-all ${d ? 'border-gray-700 text-gray-300 hover:bg-gray-800' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
-              Sign out
-            </button>
-          </div>
-        </div>
-      </nav>
+  const totalSize = files.reduce((a, f) => a + (f.size || 0), 0)
 
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
-        {/* Stats bar */}
-        <div className={`rounded-2xl p-5 border flex items-center gap-6 ${d ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200 shadow-sm'}`}>
-          <div>
-            <p className={`text-2xl font-bold ${d ? 'text-white' : 'text-gray-900'}`}>{files.length}</p>
-            <p className={`text-xs mt-0.5 ${d ? 'text-gray-400' : 'text-gray-500'}`}>Encrypted files</p>
-          </div>
-          <div className={`w-px h-10 ${d ? 'bg-gray-700' : 'bg-gray-200'}`}/>
-          <div>
-            <p className={`text-2xl font-bold ${d ? 'text-white' : 'text-gray-900'}`}>{formatSize(files.reduce((a, f) => a + (f.size || 0), 0))}</p>
-            <p className={`text-xs mt-0.5 ${d ? 'text-gray-400' : 'text-gray-500'}`}>Total stored</p>
-          </div>
-          <div className={`w-px h-10 ${d ? 'bg-gray-700' : 'bg-gray-200'}`}/>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"/>
-            <p className={`text-sm ${d ? 'text-gray-300' : 'text-gray-600'}`}>End-to-end encrypted</p>
-          </div>
-        </div>
+  // Content panels
+  const renderContent = () => {
+    if (activeNav === 'upload') return (
+      <div>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: textPrimary, marginBottom: 6, fontFamily: "'DM Serif Display', serif" }}>Upload a File</h2>
+        <p style={{ fontSize: 14, color: textSecondary, marginBottom: 28 }}>Files are encrypted in your browser before upload. The server never sees your data.</p>
 
-        {/* Encryption password */}
-        <div className={`rounded-2xl p-5 border ${d ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200 shadow-sm'}`}>
-          <div className="flex items-center gap-2 mb-3">
-            <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-            <p className={`text-sm font-semibold ${d ? 'text-white' : 'text-gray-900'}`}>Encryption key</p>
+        {/* Password field */}
+        <div style={{ background: card, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: 24, marginBottom: 20, boxShadow: shadow }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+            <span style={{ color: accent }}>{ICONS.key}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: textPrimary }}>Encryption Password</span>
           </div>
-          <div className="relative">
-            <input type={showPassword ? 'text' : 'password'}
+          <div style={{ position: 'relative' }}>
+            <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: textSecondary, display: 'flex' }}>{ICONS.lock}</span>
+            <input className="dash-input" type={showPassword ? 'text' : 'password'}
               placeholder="Password to encrypt / decrypt your files"
-              className={`w-full px-4 py-2.5 pr-11 rounded-xl border text-sm outline-none transition-all ${d ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20' : 'bg-slate-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'}`}
-              value={password} onChange={e => setPassword(e.target.value)} />
-            <button type="button" onClick={() => setShowPassword(!showPassword)}
-              className={`absolute right-3 top-1/2 -translate-y-1/2 ${d ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}>
-              {showPassword ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21"/></svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-              )}
+              value={password} onChange={e => setPassword(e.target.value)}
+              style={{ paddingLeft: 42, paddingRight: 44 }} />
+            <button onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: textSecondary, display: 'flex' }}>
+              {showPassword ? ICONS.eyeOff : ICONS.eye}
             </button>
           </div>
-          <p className={`text-xs mt-2 ${d ? 'text-gray-500' : 'text-gray-400'}`}>
-             This password never leaves your browser — the server has zero knowledge of it.
-          </p>
+          <p style={{ fontSize: 12, color: textMuted, marginTop: 10 }}>This password never leaves your browser — the server has zero knowledge of it.</p>
         </div>
 
-        {/* Drop zone */}
-        <div {...getRootProps()}
-          className={`rounded-2xl border-2 border-dashed p-12 text-center cursor-pointer transition-all ${
-            isDragActive
-              ? 'border-blue-500 bg-blue-500/5 scale-[1.01]'
-              : d ? 'border-gray-700 hover:border-gray-600 bg-gray-900' : 'border-gray-200 hover:border-gray-300 bg-white shadow-sm'
-          }`}>
+        {/* Dropzone */}
+        <div {...getRootProps()} style={{
+          background: card, border: `2px dashed ${isDragActive ? accent : cardBorder}`,
+          borderRadius: 16, padding: '56px 32px', textAlign: 'center', cursor: 'pointer',
+          transition: 'all 0.2s ease', boxShadow: shadow,
+          background: isDragActive ? accentLight : card,
+        }}>
           <input {...getInputProps()} />
           {uploading ? (
-            <div className="flex flex-col items-center gap-3">
-              <svg className="animate-spin w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-              <p className={`text-sm font-medium ${d ? 'text-gray-300' : 'text-gray-600'}`}>Encrypting and uploading...</p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', border: `3px solid ${accent}`, borderTopColor: 'transparent', animation: 'spin 0.9s linear infinite' }} />
+              <p style={{ color: textPrimary, fontWeight: 600 }}>Encrypting and uploading…</p>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-3">
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${d ? 'bg-gray-800' : 'bg-slate-100'}`}>
-                <svg className={`w-7 h-7 ${isDragActive ? 'text-blue-500' : d ? 'text-gray-400' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 56, height: 56, borderRadius: 16, background: accentLight, display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent }}>
+                {ICONS.cloud}
               </div>
               <div>
-                <p className={`text-sm font-semibold ${d ? 'text-gray-200' : 'text-gray-700'}`}>
-                  {isDragActive ? 'Drop to encrypt & upload' : 'Drag & drop your file here'}
-                </p>
-                <p className={`text-xs mt-1 ${d ? 'text-gray-500' : 'text-gray-400'}`}>or click to browse — encrypted before leaving your device</p>
+                <p style={{ fontWeight: 600, color: textPrimary, fontSize: 15 }}>{isDragActive ? 'Drop to encrypt & upload' : 'Drag & drop your file here'}</p>
+                <p style={{ fontSize: 13, color: textSecondary, marginTop: 4 }}>or click to browse — encrypted before leaving your device</p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Message */}
         {msg.text && (
-          <div className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm border ${
-            msg.type === 'success'
-              ? d ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-700'
-              : d ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-600'
-          }`}>
-            {msg.type === 'success'
-              ? <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-              : <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>}
-            {msg.text}
+          <div style={{ marginTop: 16, padding: '12px 16px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10, fontSize: 14,
+            background: msg.type === 'success' ? (d ? 'rgba(34,197,94,0.1)' : '#f0fdf4') : (d ? 'rgba(239,68,68,0.1)' : '#fef2f2'),
+            border: `1px solid ${msg.type === 'success' ? (d ? 'rgba(34,197,94,0.2)' : '#bbf7d0') : (d ? 'rgba(239,68,68,0.2)' : '#fecaca')}`,
+            color: msg.type === 'success' ? '#22c55e' : '#ef4444',
+          }}>
+            <span>{msg.type === 'success' ? '✓' : '!'}</span> {msg.text}
           </div>
         )}
+      </div>
+    )
 
-        {/* File list */}
-        <div className={`rounded-2xl border overflow-hidden ${d ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200 shadow-sm'}`}>
-          <div className={`px-5 py-4 border-b flex items-center justify-between ${d ? 'border-gray-800' : 'border-gray-100'}`}>
-            <h2 className={`text-sm font-semibold ${d ? 'text-white' : 'text-gray-900'}`}>Your files</h2>
-            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${d ? 'bg-gray-800 text-gray-400' : 'bg-slate-100 text-gray-500'}`}>{files.length} files</span>
+    if (activeNav === 'share') return (
+      <div>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: textPrimary, marginBottom: 6, fontFamily: "'DM Serif Display', serif" }}>Share Links</h2>
+        <p style={{ fontSize: 14, color: textSecondary, marginBottom: 28 }}>Generate secure share links for your encrypted files. Recipients need your password to decrypt.</p>
+        {files.length === 0 ? (
+          <div style={{ background: card, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: '48px 32px', textAlign: 'center', boxShadow: shadow }}>
+            <p style={{ color: textSecondary, fontSize: 14 }}>Upload files first to create share links.</p>
           </div>
-
-          {files.length === 0 ? (
-            <div className="py-16 flex flex-col items-center gap-3">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${d ? 'bg-gray-800' : 'bg-slate-100'}`}>
-                <svg className={`w-6 h-6 ${d ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
-              </div>
-              <p className={`text-sm ${d ? 'text-gray-500' : 'text-gray-400'}`}>No files uploaded yet</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-opacity-50">
-              {files.map(file => (
-                <div key={file.id} className={`px-5 py-4 transition-colors ${d ? 'divide-gray-800 hover:bg-gray-800/50' : 'divide-gray-100 hover:bg-slate-50'}`}>
-                  <div className="flex items-center gap-4">
-                    {/* File icon */}
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${d ? 'bg-gray-800' : 'bg-slate-100'}`}>
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${d ? 'text-white' : 'text-gray-900'}`}>{file.name}</p>
-                      <p className={`text-xs mt-0.5 ${d ? 'text-gray-500' : 'text-gray-400'}`}>
-                        {formatSize(file.size)} · {new Date(file.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button onClick={() => downloadFile(file)}
-                        className={`p-2 rounded-xl transition-all ${d ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-slate-100 text-gray-500 hover:text-gray-900'}`}
-                        title="Download & decrypt">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                      </button>
-                      <button onClick={() => createShareLink(file.id)}
-                        className={`p-2 rounded-xl transition-all ${d ? 'hover:bg-gray-700 text-gray-400 hover:text-blue-400' : 'hover:bg-blue-50 text-gray-500 hover:text-blue-600'}`}
-                        title="Create share link">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-                      </button>
-                      <button onClick={() => deleteFile(file.id)} disabled={deletingId === file.id}
-                        className={`p-2 rounded-xl transition-all ${d ? 'hover:bg-gray-700 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-500'}`}
-                        title="Delete file">
-                        {deletingId === file.id
-                          ? <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-                          : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>}
-                      </button>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {files.map(file => (
+              <div key={file.id} style={{ background: card, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: '18px 20px', boxShadow: shadow }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 10, background: accentLight, display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent, flexShrink: 0 }}>{ICONS.files}</div>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ fontWeight: 600, color: textPrimary, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name}</p>
+                      <p style={{ fontSize: 12, color: textSecondary }}>{formatSize(file.size)}</p>
                     </div>
                   </div>
-                  {shareLinks[file.id] && (
-                    <div className={`mt-3 flex items-center gap-2 px-3 py-2 rounded-xl text-xs ${d ? 'bg-gray-800 text-gray-400' : 'bg-slate-50 text-gray-500 border border-gray-100'}`}>
-                      <svg className="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-                      <span className="truncate flex-1">{shareLinks[file.id]}</span>
-                      <button onClick={() => navigator.clipboard.writeText(shareLinks[file.id])}
-                        className="text-blue-500 hover:text-blue-400 font-medium shrink-0 transition-colors">Copy</button>
-                    </div>
-                  )}
+                  <button onClick={() => createShareLink(file.id)} style={{
+                    padding: '8px 16px', borderRadius: 10, border: `1px solid ${cardBorder}`,
+                    background: accentLight, color: accent, fontSize: 13, fontWeight: 600,
+                    cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
+                  }}>
+                    {ICONS.link} Generate Link
+                  </button>
                 </div>
-              ))}
+                {shareLinks[file.id] && (
+                  <div style={{ marginTop: 14, padding: '10px 14px', borderRadius: 10, background: inputBg, border: `1px solid ${inputBorder}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ color: accent, flexShrink: 0 }}>{ICONS.link}</span>
+                    <span style={{ fontSize: 12, color: textSecondary, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{shareLinks[file.id]}</span>
+                    <button onClick={() => navigator.clipboard.writeText(shareLinks[file.id])} style={{ background: 'none', border: 'none', color: accent, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", whiteSpace: 'nowrap' }}>Copy</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+
+    if (activeNav === 'security') return (
+      <div>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: textPrimary, marginBottom: 6, fontFamily: "'DM Serif Display', serif" }}>Security Overview</h2>
+        <p style={{ fontSize: 14, color: textSecondary, marginBottom: 28 }}>How Veilora keeps your data safe.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          {[
+            { title: 'AES-256-GCM', desc: 'Military-grade encryption applied in your browser before any data is sent.', badge: 'Active' },
+            { title: 'Zero Knowledge', desc: 'Your password never leaves your device. The server stores only encrypted blobs.', badge: 'Verified' },
+            { title: 'PBKDF2 Key Derivation', desc: '310,000 iterations using SHA-256 for key hardening against brute-force attacks.', badge: 'Active' },
+            { title: 'Unique Salt & IV', desc: 'Each file gets a cryptographically random salt and IV — identical files produce different ciphertext.', badge: 'Per-file' },
+          ].map(({ title, desc, badge }) => (
+            <div key={title} style={{ background: card, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: 24, boxShadow: shadow }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: textPrimary }}>{title}</h3>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: accentLight, color: accent }}>{badge}</span>
+              </div>
+              <p style={{ fontSize: 13, color: textSecondary, lineHeight: 1.6 }}>{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+
+    if (activeNav === 'settings') return (
+      <div>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: textPrimary, marginBottom: 6, fontFamily: "'DM Serif Display', serif" }}>Settings</h2>
+        <p style={{ fontSize: 14, color: textSecondary, marginBottom: 28 }}>Manage your account and preferences.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ background: card, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: 24, boxShadow: shadow }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: textSecondary, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 14 }}>Account</p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 600, color: textPrimary }}>{user?.email}</p>
+                <p style={{ fontSize: 12, color: textSecondary, marginTop: 2 }}>Authenticated via {user?.app_metadata?.provider || 'email'}</p>
+              </div>
+              <button onClick={() => supabase.auth.signOut()} style={{ padding: '9px 18px', borderRadius: 10, border: `1px solid ${d ? 'rgba(239,68,68,0.3)' : '#fecaca'}`, background: d ? 'rgba(239,68,68,0.08)' : '#fef2f2', color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Sign out</button>
+            </div>
+          </div>
+          <div style={{ background: card, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: 24, boxShadow: shadow }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: textSecondary, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 14 }}>Appearance</p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 600, color: textPrimary }}>{d ? 'Dark mode' : 'Light mode'}</p>
+                <p style={{ fontSize: 12, color: textSecondary, marginTop: 2 }}>Toggle between light and dark theme</p>
+              </div>
+              <button onClick={() => setDark(!d)} style={{
+                width: 52, height: 28, borderRadius: 999, border: 'none', cursor: 'pointer',
+                background: d ? accent : '#e2e0dc', position: 'relative', transition: 'background 0.3s',
+              }}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: d ? 27 : 3, transition: 'left 0.3s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+
+    // Default: My Files
+    return (
+      <div>
+        {/* Stats row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 28 }}>
+          {[
+            { label: 'Encrypted Files', value: files.length },
+            { label: 'Total Stored', value: formatSize(totalSize) },
+            { label: 'Encryption', value: 'AES-256-GCM' },
+          ].map(({ label, value }) => (
+            <div key={label} style={{ background: card, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: '18px 20px', boxShadow: shadow }}>
+              <p style={{ fontSize: 22, fontWeight: 800, color: textPrimary, letterSpacing: '-0.5px' }}>{value}</p>
+              <p style={{ fontSize: 12, color: textSecondary, marginTop: 4 }}>{label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* File list header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: textPrimary }}>Your Files</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 12, padding: '4px 12px', borderRadius: 999, background: accentLight, color: accent, fontWeight: 600 }}>{files.length} files</span>
+            <button onClick={() => setActiveNav('upload')} style={{
+              padding: '8px 16px', borderRadius: 10, border: 'none',
+              background: accent, color: '#fff', fontSize: 13, fontWeight: 600,
+              cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', gap: 6,
+            }}>
+              + Upload
+            </button>
+          </div>
+        </div>
+
+        {/* File list */}
+        <div style={{ background: card, border: `1px solid ${cardBorder}`, borderRadius: 16, overflow: 'hidden', boxShadow: shadow }}>
+          {files.length === 0 ? (
+            <div style={{ padding: '64px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: accentLight, display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent }}>{ICONS.files}</div>
+              <p style={{ color: textSecondary, fontSize: 14 }}>No files uploaded yet</p>
+              <button onClick={() => setActiveNav('upload')} style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: accent, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Upload your first file</button>
+            </div>
+          ) : files.map((file, i) => (
+            <div key={file.id} style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14, borderBottom: i < files.length - 1 ? `1px solid ${divider}` : 'none', transition: 'background 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.background = hoverBg}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <div style={{ width: 40, height: 40, borderRadius: 11, background: accentLight, display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent, flexShrink: 0 }}>{ICONS.files}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 14, fontWeight: 600, color: textPrimary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name}</p>
+                <p style={{ fontSize: 12, color: textSecondary, marginTop: 2 }}>{formatSize(file.size)} · {new Date(file.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                {[
+                  { icon: ICONS.download, title: 'Download & decrypt', onClick: () => downloadFile(file), hoverColor: textPrimary },
+                  { icon: ICONS.link, title: 'Share', onClick: () => createShareLink(file.id), hoverColor: accent },
+                  { icon: deletingId === file.id ? null : ICONS.trash, title: 'Delete', onClick: () => deleteFile(file.id), hoverColor: '#ef4444' },
+                ].map(({ icon, title, onClick, hoverColor }, idx) => (
+                  <button key={idx} onClick={onClick} title={title}
+                    style={{ width: 34, height: 34, borderRadius: 9, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: textSecondary, transition: 'all 0.15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = hoverBg; e.currentTarget.style.color = hoverColor }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = textSecondary }}>
+                    {deletingId === file.id && idx === 2
+                      ? <div style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid ${textSecondary}`, borderTopColor: 'transparent', animation: 'spin 0.9s linear infinite' }} />
+                      : icon}
+                  </button>
+                ))}
+              </div>
+              {shareLinks[file.id] && (
+                <div style={{ position: 'absolute', marginTop: 60 }} />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Share links below file list */}
+        {files.some(f => shareLinks[f.id]) && (
+          <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {files.filter(f => shareLinks[f.id]).map(file => (
+              <div key={file.id} style={{ background: card, border: `1px solid ${cardBorder}`, borderRadius: 12, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, boxShadow: shadow }}>
+                <span style={{ color: accent, flexShrink: 0, fontSize: 12 }}>{ICONS.link}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: textSecondary, flexShrink: 0 }}>{file.name}:</span>
+                <span style={{ fontSize: 12, color: textSecondary, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{shareLinks[file.id]}</span>
+                <button onClick={() => navigator.clipboard.writeText(shareLinks[file.id])} style={{ background: 'none', border: 'none', color: accent, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Copy</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh', background: bg, fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", transition: 'background 0.3s' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        .dash-input {
+          width: 100%; padding: 13px 16px; border-radius: 12px;
+          border: 1.5px solid ${inputBorder}; background: ${inputBg};
+          color: ${textPrimary}; font-size: 14px; font-family: 'DM Sans', sans-serif;
+          outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .dash-input::placeholder { color: ${textSecondary}; }
+        .dash-input:focus { border-color: ${accent}; box-shadow: 0 0 0 3px ${accentLight}; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: ${d ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)'}; border-radius: 99px; }
+      `}</style>
+
+      {/* Sidebar */}
+      <aside style={{
+        width: 240, flexShrink: 0, background: sidebar,
+        borderRight: `1px solid ${sidebarBorder}`,
+        display: 'flex', flexDirection: 'column',
+        position: 'sticky', top: 0, height: '100vh', overflow: 'auto',
+      }}>
+        {/* Logo */}
+        <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${sidebarBorder}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <img src="/logo.png" alt="Veilora" style={{ height: 36, width: 'auto', filter: d ? 'brightness(0) invert(1)' : 'none' }} />
+            <span style={{ fontSize: 18, fontWeight: 800, color: textPrimary, letterSpacing: '-0.3px', fontFamily: "'DM Serif Display', serif" }}>Veilora</span>
+          </div>
+        </div>
+
+        {/* Nav */}
+        <nav style={{ flex: 1, padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {NAV.map(({ id, label, icon }) => {
+            const isActive = activeNav === id
+            return (
+              <button key={id} onClick={() => setActiveNav(id)} style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 14px', borderRadius: 11, border: 'none', cursor: 'pointer',
+                background: isActive ? navActive : 'transparent',
+                color: isActive ? (d ? '#a5a0ff' : '#1a1714') : textSecondary,
+                fontSize: 14, fontWeight: isActive ? 700 : 500,
+                fontFamily: "'DM Sans', sans-serif", textAlign: 'left',
+                transition: 'all 0.15s',
+                borderLeft: isActive ? `3px solid ${navActiveBorder}` : '3px solid transparent',
+              }}
+                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = hoverBg }}
+                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}>
+                {ICONS[icon]} {label}
+              </button>
+            )
+          })}
+        </nav>
+
+        {/* Bottom — user + toggle */}
+        <div style={{ padding: '16px 12px', borderTop: `1px solid ${sidebarBorder}` }}>
+          {/* Dark/light toggle */}
+          <button onClick={() => setDark(!d)} style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 14px', borderRadius: 11, border: 'none', cursor: 'pointer',
+            background: 'transparent', color: textSecondary, fontSize: 14, fontWeight: 500,
+            fontFamily: "'DM Sans', sans-serif", marginBottom: 6, transition: 'background 0.15s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = hoverBg}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+            {d ? ICONS.sun : ICONS.moon}
+            {d ? 'Light mode' : 'Dark mode'}
+          </button>
+
+          {/* Sign out */}
+          <button onClick={() => supabase.auth.signOut()} style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 14px', borderRadius: 11, border: 'none', cursor: 'pointer',
+            background: 'transparent', color: textSecondary, fontSize: 14, fontWeight: 500,
+            fontFamily: "'DM Sans', sans-serif", transition: 'background 0.15s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.background = d ? 'rgba(239,68,68,0.08)' : '#fef2f2'; e.currentTarget.style.color = '#ef4444' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = textSecondary }}>
+            {ICONS.signout} Sign out
+          </button>
+
+          {/* User pill */}
+          {user && (
+            <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 11, background: hoverBg, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 30, height: 30, borderRadius: '50%', background: accentLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: accent, flexShrink: 0 }}>
+                {(user.email?.[0] || '?').toUpperCase()}
+              </div>
+              <p style={{ fontSize: 12, color: textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</p>
             </div>
           )}
         </div>
-      </div>
+      </aside>
+
+      {/* Main content */}
+      <main style={{ flex: 1, padding: '40px 48px', overflowY: 'auto', maxWidth: 860 }}>
+        {/* Top bar */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite' }} />
+            <span style={{ fontSize: 13, color: textSecondary, fontWeight: 500 }}>End-to-end encrypted</span>
+          </div>
+        </div>
+
+        {renderContent()}
+      </main>
     </div>
   )
 }
