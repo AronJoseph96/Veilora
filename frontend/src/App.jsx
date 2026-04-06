@@ -1,22 +1,29 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import { supabase } from './supabase'
-import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
-import SharedFile from './pages/SharedFile'
-import Landing from './pages/Landing'
+// App.jsx — add these imports
+import LoadingScreen from './pages/LoadingScreen'
+import { useRef } from 'react'
 
 export default function App() {
   const [session, setSession] = useState(undefined)
+  const [showLoader, setShowLoader] = useState(false)
+  const prevSession = useRef(null)
+  const dark = localStorage.getItem('theme') === 'dark'
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    supabase.auth.onAuthStateChange((_, s) => setSession(s))
+
+    supabase.auth.onAuthStateChange((event, s) => {
+      // Show loader only on fresh sign-in (null → session)
+      if (!prevSession.current && s) {
+        setShowLoader(true)
+        setTimeout(() => setShowLoader(false), 2200) // matches animation duration
+      }
+      prevSession.current = s
+      setSession(s)
+    })
   }, [])
 
-  if (session === undefined) return (
-    <div className="flex items-center justify-center h-screen text-gray-500">Loading...</div>
-  )
+  if (session === undefined) return <LoadingScreen dark={dark} />
+  if (showLoader)            return <LoadingScreen dark={dark} />
 
   return (
     <BrowserRouter>
