@@ -2,6 +2,140 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 
+
+// ── Disposable/temp mail domains blocklist ────────────────────────────────────
+const TEMP_MAIL_DOMAINS = new Set([
+  'mailinator.com','guerrillamail.com','guerrillamail.net','guerrillamail.org',
+  'guerrillamail.biz','guerrillamail.de','guerrillamail.info','guerrillamailblock.com',
+  'sharklasers.com','grr.la','guerrillamailblock.com','spam4.me','yopmail.com',
+  'yopmail.fr','cool.fr.nf','jetable.fr.nf','nospam.ze.tc','nomail.xl.cx',
+  'mega.zik.dj','speed.1s.fr','courriel.fr.nf','moncourrier.fr.nf','monemail.fr.nf',
+  'monmail.fr.nf','10minutemail.com','10minutemail.net','10minutemail.org',
+  '10minutemail.de','10minutemail.co.uk','10minutemail.info','10minutemail.biz',
+  '10minutemail.us','trashmail.com','trashmail.me','trashmail.net','trashmail.at',
+  'trashmail.io','trashmail.xyz','tempmail.com','tempmail.net','tempmail.org',
+  'temp-mail.org','temp-mail.io','tempinbox.com','throwam.com','throwam.net',
+  'throwam.org','maildrop.cc','dispostable.com','dispostable.net','dispostable.org',
+  'fakeinbox.com','fakeinbox.net','mailnull.com','mailnull.net','mailnull.org',
+  'spamgourmet.com','spamgourmet.net','spamgourmet.org','nwldx.com','cuvox.de',
+  'dayrep.com','fleckens.hu','gustr.com','jourrapide.com','rhyta.com','superrito.com',
+  'teleworm.us','armyspy.com','cuvox.de','einrot.com','fleckens.hu','getairmail.com',
+  'girlsundertheinfluence.com','hmamail.com','inoutmail.de','inoutmail.eu',
+  'inoutmail.info','inoutmail.net','jetable.com','jetable.fr','mailexpire.com',
+  'mailexpire.net','mailnew.com','mailnew.net','mailnew.org','mailnull.com',
+  'mailnull.net','mailnull.org','mailscrap.com','mailscrap.net','mailscrap.org',
+  'mailslite.com','mailslite.net','mailslite.org','mt2009.com','mt2014.com',
+  'mt2015.com','mt2016.com','mt2017.com','nomail.com','nomail.net','nomail.org',
+  'nowmymail.com','nowmymail.net','nowmymail.org','put2.net','safetymail.info',
+  'safetymail.net','safetymail.org','sharedmailbox.org','sharedmailbox.net',
+  'sharedmailbox.com','sneakemail.com','sneakemail.net','sneakemail.org',
+  'sofimail.com','sofimail.net','sofimail.org','spamfree24.org','spamfree24.de',
+  'spamfree24.eu','spamfree24.info','spamfree24.net','spamgourmet.com',
+  'spamgourmet.net','spamgourmet.org','suremail.info','suremail.net','suremail.org',
+  'tafmail.com','tafmail.net','tafmail.org','taintedmail.com','taintedmail.net',
+  'taintedmail.org','tempinbox.com','tempinbox.net','tempinbox.org','tempr.email',
+  'throwam.com','throwam.net','throwam.org','trashdevil.com','trashdevil.net',
+  'trashdevil.org','uggsrock.com','uggsrock.net','uggsrock.org','wetrainbayarea.com',
+  'wetrainbayarea.net','wetrainbayarea.org','yep.it','zehnminutenmail.de',
+  'binkmail.com','bobmail.info','chammy.info','devnullmail.com','discard.email',
+  'discardmail.com','discardmail.de','eintagsmail.de','email60.com','emailias.com',
+  'emailigo.com','emailinfive.com','emailmiser.com','emailsensei.com','emailtemporanea.com',
+  'emailtemporaria.com.br','emailwarden.com','emailx.at.hm','emailxfer.com',
+  'emz.net','es.riffs.us','evopo.com','explodemail.com','express.net.ua',
+  'extremail.ru','fakenews.com','fakeinformation.com','fakemail.fr','fakemail.net',
+  'filzmail.com','flurmy.com','frapmail.com','garliclife.com','get1mail.com',
+  'getonemail.com','gishpuppy.com','gowikibooks.com','gowikicampus.com',
+  'gowikicars.com','gowikifilms.com','gowikigames.com','gowikimusic.com',
+  'gowikinet.com','gowikitravel.com','grandmamail.com','great-host.in',
+  'greensloth.com','gsrv.co.uk','guerrillamail.biz','ieatspam.eu','ieatspam.info',
+  'ieh-mail.de','inbax.tk','inbox.si','inboxclean.com','inboxclean.org',
+  'inboxstore.me','incognitomail.com','incognitomail.net','incognitomail.org',
+  'inoutmail.de','iroid.com','jetable.net','jetable.org','joseimixx.com',
+  'josse.ltd','kasmail.com','keepmymail.com','kurzepost.de','letthemeatspam.com',
+  'lol.ovpn.to','lroid.com','m4ilweb.info','mail-easy.fr','mail.mezimages.net',
+  'mail114.net','mail1a.de','mail21.cc','mail2rss.org','mail333.com','mail4trash.com',
+  'mailbidon.com','mailbiz.biz','mailblocks.com','mailcatch.com','mailchop.com',
+  'mailden.net','maildx.com','mailed.ro','mailexpire.com','mailfa.tk','mailforspam.com',
+  'mailfreeonline.com','mailfs.com','mailguard.me','mailin8r.com','mailinater.com',
+  'mailinator.net','mailinator2.com','mailincubator.com','mailismagic.com',
+  'mailjunk.com','mailme.ir','mailme.lv','mailme24.com','mailmetrash.com',
+  'mailmoat.com','mailms.com','mailnew.com','mailnobody.com','mailnull.com',
+  'mailpick.biz','mailproxsy.com','mailquack.com','mailrock.biz','mailsac.com',
+  'mailscrap.com','mailshell.com','mailsiphon.com','mailslite.com','mailsreal.com',
+  'mailsucker.net','mailtemp.info','mailtome.de','mailtothis.com','mailtrash.net',
+  'mailtv.net','mailtv.tv','mailzilla.com','mailzilla.org','mbx.cc','mega.zik.dj',
+  'meltmail.com','messagebeamer.de','mezimages.net','mfsa.ru','mobi.web.id',
+  'moburl.com','mockumail.com','mohmal.com','moncourrier.fr.nf','monemail.fr.nf',
+  'monmail.fr.nf','msa.minsmail.com','msb.minsmail.com','mt2009.com','mxp.dns.ms',
+  'mycleaninbox.net','mymailoasis.com','mypartyclip.de','myphantomemail.com',
+  'myspaceinc.com','myspaceinc.net','myspaceinc.org','myspacepimpedup.com',
+  'myspamless.com','mytempemail.com','mytrashmail.com','nabuma.com','netzidiot.de',
+  'neverbox.com','nice-4u.com','nincsmail.com','nmail.cf','no-spam.ws','noblepioneer.com',
+  'nobulk.com','noclickemail.com','nogmailspam.info','nomail.pw','nomail.xl.cx',
+  'nomail2me.com','nomorespamemails.com','nonspam.eu','nonspammer.de','noref.in',
+  'nospam.ze.tc','nospam4.us','nospamfor.us','nospamthanks.info','notmailinator.com',
+  'nowhere.org','nowmymail.com','nwldx.com','objectmail.com','obobbo.com',
+  'odaymail.com','oerpub.org','oneoffemail.com','onewaymail.com','online.ms',
+  'onlineidea.info','oopi.org','ordinaryamerican.net','otherinbox.comuv.com',
+  'owlpic.com','pancakemail.com','pimpedupmyspace.com','plexolan.de','poofy.org',
+  'pookmail.com','privacy.net','privatdemail.net','proxymail.eu','prtnx.com',
+  'prtz.eu','putthisinyourspamdatabase.com','qq.com','quickinbox.com','rcpt.at',
+  'reallymymail.com','recode.me','recursor.net','recyclemail.dk','regbypass.comuv.com',
+  'rklips.com','rmqkr.net','rppkn.com','rtrtr.com','s0ny.net','safe-mail.net',
+  'safersignup.de','safetymail.info','safetypost.de','sandelf.de','schafmail.de',
+  'schrott-email.de','secretemail.de','secure-mail.biz','selfdestructingmail.com',
+  'sendspamhere.com','sharklasers.com','shieldedmail.com','shiftmail.com',
+  'shitmail.me','shitmail.org','shortmail.net','showslow.de','signaturit.com',
+  'skeefmail.com','slapsfromlindas.com','slaskpost.se','slave-auctions.net',
+  'slopsbox.com','slowslow.de','slushmail.com','smapfree24.com','smapfree24.de',
+  'smapfree24.eu','smapfree24.info','smapfree24.org','smellfear.com','snakemail.com',
+  'sneakemail.com','sogetthis.com','soioa.com','soodonims.com','spam.la',
+  'spam.org.tr','spam.su','spam4.me','spamavert.com','spambob.com','spambob.net',
+  'spambob.org','spambog.com','spambog.de','spambog.ru','spambox.info','spambox.irishspringrealty.com',
+  'spambox.us','spamcannon.com','spamcannon.net','spamcannon.org','spamcon.org',
+  'spamcorpse.com','spamdag.com','spamex.com','spamfree.eu','spamfree24.de',
+  'spamfree24.eu','spamfree24.info','spamfree24.net','spamfree24.org','spamgoes.in',
+  'spamgourmet.com','spamherelots.com','spamhereplease.com','spamhole.com',
+  'spamify.com','spaminator.de','spamkill.info','spaml.com','spaml.de',
+  'spammotel.com','spammy.host','spamnot.com','spamoff.de','spamslicer.com',
+  'spamspot.com','spamstack.net','spamthis.co.uk','spamthisplease.com',
+  'spamtroll.net','spamwc.cf','spamwc.de','spamwc.ga','spamwc.gq','spamwc.ml',
+  'speed.1s.fr','spoofmail.de','squizzy.de','squizzy.eu','squizzy.net',
+  'startkeys.com','stinkefinger.net','stuffmail.de','super-auswahl.de','supergreatmail.com',
+  'supermailer.jp','superrito.com','superstachel.de','suremail.info','sweetxxx.de',
+  'tafmail.com','tagyourself.com','talkinator.com','tapchicuoihoi.com','teewars.org',
+  'teleworm.com','teleworm.us','tempalias.com','tempe-mail.com','tempemail.biz',
+  'tempemail.com','tempemail.net','tempemail.org','tempinbox.co.uk','tempinbox.com',
+  'tempmail.de','tempmail.eu','tempmail.it','tempmail2.com','tempomail.fr',
+  'temporaryemail.net','temporaryemail.us','temporaryforwarding.com','temporaryinbox.com',
+  'temporarymailaddress.com','tempsky.com','tempthe.net','tempymail.com',
+  'thankyou2010.com','thisisnotmyrealemail.com','throwam.com','throwam.net',
+  'throwam.org','throwaway.email','tilien.com','tmail.com','tmail.io','tmail.ws',
+  'tmailinator.com','tokem.co','toomail.biz','tradermail.info','trash-amil.com',
+  'trash-mail.at','trash-mail.cf','trash-mail.ga','trash-mail.gq','trash-mail.io',
+  'trash-mail.ml','trash-mail.tk','trash2009.com','trash2010.com','trash2011.com',
+  'trashmail.at','trashmail.com','trashmail.io','trashmail.me','trashmail.net',
+  'trashmail.org','trashmail.xyz','trashmailer.com','trashme.com','trashrbin.com',
+  'trillianpro.com','trmailbox.com','turual.com','twinmail.de','tyldd.com',
+  'uggsrock.com','uo8.de','uroid.com','ux.dob.jp','v-mail.org','veryrealemail.com',
+  'vidchart.com','viditag.com','viewcastmedia.com','viewcastmedia.net',
+  'viewcastmedia.org','vkcode.ru','vomoto.com','vpn.st','vubby.com','w3internet.co.uk',
+  'walala.org','walkmail.net','webemail.me','webm4il.info','webmail.kolmpuu.net',
+  'wetrainbayarea.com','wetrainbayarea.org','whyspam.me','willhackforfood.biz',
+  'willselfdestruct.com','wilemail.com','winmail.com.au','wmail.org','wolfmission.com',
+  'wolfsmail.tk','wtmlife.com','wuzupmail.net','xagloo.com','xemaps.com',
+  'xents.com','xmail.de','xmaily.com','xn--9kq967o.com','xoxy.net','xyzfree.net',
+  'yapped.net','yeah.net','yep.it','yogamaven.com','yopmail.com','yopmail.fr',
+  'yourdomain.com','yuurok.com','z1p.biz','za.com','zehnminuten.de',
+  'zehnminutenmail.de','zippymail.info','zoemail.net','zoemail.org',
+  'zomg.info','zxcv.com','zxcvbnm.com','zzz.com',
+])
+
+function isTempMail(email) {
+  const domain = email.split('@')[1]?.toLowerCase()
+  return domain ? TEMP_MAIL_DOMAINS.has(domain) : false
+}
+
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -18,13 +152,58 @@ export default function Login() {
     localStorage.setItem('theme', dark ? 'dark' : 'light')
   }, [dark])
 
+  const [verificationSent, setVerificationSent] = useState(false)
+
+  async function checkDisposable(email) {
+    // Static list fast-check first
+    if (isTempMail(email)) return true
+    // Then hit disify.com free API for real-time domain check
+    try {
+      const domain = email.split('@')[1]
+      const res = await fetch(`https://www.disify.com/api/email/${encodeURIComponent(email)}`)
+      if (res.ok) {
+        const data = await res.json()
+        // disposable:true or format:false means block it
+        if (data.disposable === true || data.format === false || data.dns === false) return true
+      }
+    } catch {
+      // If API fails, fall back to static list only (don't block legit users)
+    }
+    return false
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const fn = isSignup ? supabase.auth.signUp : supabase.auth.signInWithPassword
-    const { error } = await fn.call(supabase.auth, { email, password })
-    if (error) setError(error.message)
+
+    if (isSignup) {
+      // Check disposable/temp mail via static list + live API
+      const isDisposable = await checkDisposable(email)
+      if (isDisposable) {
+        setError('Disposable or temporary email addresses are not allowed. Please use a real email.')
+        setLoading(false)
+        return
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email, password,
+        options: { emailRedirectTo: window.location.origin }
+      })
+      if (error) {
+        setError(error.message)
+      } else if (data?.user) {
+        if (data.user.identities && data.user.identities.length === 0) {
+          setError('An account with this email already exists. Try signing in instead.')
+        } else {
+          // Always show verification screen — works once Supabase "Confirm email" is ON
+          setVerificationSent(true)
+        }
+      }
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) setError(error.message)
+    }
     setLoading(false)
   }
 
@@ -227,7 +406,31 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Fields */}
+        {/* Email verification sent screen */}
+        {verificationSent ? (
+          <div style={{ textAlign: 'center', padding: '8px 0' }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: dark ? 'rgba(34,197,94,0.12)' : '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+            </div>
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: textPrimary, marginBottom: 10, fontFamily: "'DM Serif Display', serif" }}>Check your email</h2>
+            <p style={{ fontSize: 14, color: textSecondary, lineHeight: 1.6, marginBottom: 20 }}>
+              We sent a verification link to <strong style={{ color: textPrimary }}>{email}</strong>.<br/>
+              Click the link to activate your account.
+            </p>
+            <p style={{ fontSize: 12, color: dark ? '#38384a' : '#c0bbb4' }}>
+              Didn't receive it? Check your spam folder.
+            </p>
+            <button onClick={() => { setVerificationSent(false); setIsSignup(false) }}
+              style={{ marginTop: 20, background: 'none', border: 'none', color: dark ? '#6c63f5' : '#1a1714', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", textDecoration: 'underline' }}>
+              Back to sign in
+            </button>
+          </div>
+        ) : (
+
+        <>{/* Fields */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 14 }}>
           {/* Email */}
           <div style={{ position: 'relative' }}>
@@ -323,6 +526,8 @@ export default function Login() {
         <p style={{ textAlign: 'center', fontSize: 12, color: dark ? '#38384a' : '#c0bbb4', marginTop: 16 }}>
           Files are encrypted in your browser. We never see your data.
         </p>
+        </>
+        )}
       </div>
     </div>
   )
