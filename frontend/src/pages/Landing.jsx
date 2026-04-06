@@ -10,9 +10,10 @@ export default function Landing() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s)
-      if (s) navigate('/dashboard')
+      // Only redirect on fresh sign-in, not on every page load
+      if (event === 'SIGNED_IN') navigate('/dashboard')
     })
     return () => subscription.unsubscribe()
   }, [navigate])
