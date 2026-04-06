@@ -93,4 +93,21 @@ router.get('/:id/download-url', requireAuth, async (req, res) => {
   res.json({ signedUrl: download.signedUrl })
 })
 
+router.patch('/:id', requireAuth, async (req, res) => {
+  const { name } = req.body
+  if (!name || typeof name !== 'string' || !name.trim())
+    return res.status(400).json({ error: 'Invalid name' })
+ 
+  const { data: file, error } = await supabase
+    .from('files')
+    .update({ name: name.trim() })
+    .eq('id', req.params.id)
+    .eq('owner_id', req.user.id)
+    .select()
+    .single()
+ 
+  if (error || !file) return res.status(404).json({ error: 'File not found' })
+  res.json(file)
+})
+
 export default router
