@@ -6,6 +6,9 @@ import { supabase } from '../supabase'
 import api from '../api'
 import { encryptFile, decryptFile } from '../crypto'
 
+// ─── Files cache (module-level, persists between navigations) ─────────────────
+let _filesCache = null
+
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 const Icon = {
   files:    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
@@ -22,8 +25,6 @@ const Icon = {
   eye:      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
   eyeOff:   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
   cloud:    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>,
-  sun:      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
-  moon:     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>,
   menu:     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
   close:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
 }
@@ -35,7 +36,7 @@ const NAV = [
   { id: 'settings', label: 'Settings',    icon: 'settings' },
 ]
 
-const QUOTA = 40 * 1024 * 1024 // 40 MB
+const QUOTA = 40 * 1024 * 1024
 
 function formatSize(bytes) {
   if (!bytes) return '0 B'
@@ -116,21 +117,40 @@ function ShareModal({ onConfirm, onCancel, tokens }) {
   )
 }
 
+// ─── Skeleton row ─────────────────────────────────────────────────────────────
+function SkeletonRow({ divider, d }) {
+  return (
+    <div style={{ padding:'14px 16px', borderBottom: divider, display:'flex', alignItems:'center', gap:12 }}>
+      <div style={{ width:38, height:38, borderRadius:11, background: d ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', flexShrink:0, animation:'shimmer 1.5s ease-in-out infinite' }}/>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', gap:8 }}>
+        <div style={{ height:13, width:'45%', borderRadius:6, background: d ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', animation:'shimmer 1.5s ease-in-out infinite' }}/>
+        <div style={{ height:11, width:'25%', borderRadius:6, background: d ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', animation:'shimmer 1.5s ease-in-out infinite' }}/>
+      </div>
+      <div style={{ display:'flex', gap:4 }}>
+        {[...Array(3)].map((_, j) => (
+          <div key={j} style={{ width:34, height:34, borderRadius:9, background: d ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', animation:'shimmer 1.5s ease-in-out infinite' }}/>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   const navigate = useNavigate()
-  const [files, setFiles]               = useState([])
-  const [password, setPassword]         = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [uploading, setUploading]       = useState(false)
-  const [shareLinks, setShareLinks]     = useState({})
-  const [dark, setDark]                 = useState(() => localStorage.getItem('theme') === 'dark')
-  const [user, setUser]                 = useState(null)
-  const [deletingId, setDeletingId]     = useState(null)
-  const [activeNav, setActiveNav]       = useState('files')
-  const [sidebarOpen, setSidebarOpen]   = useState(() => window.innerWidth >= 900)
+  const [files, setFiles]                 = useState(_filesCache || [])
+  const [loadingFiles, setLoadingFiles]   = useState(!_filesCache)
+  const [password, setPassword]           = useState('')
+  const [showPassword, setShowPassword]   = useState(false)
+  const [uploading, setUploading]         = useState(false)
+  const [shareLinks, setShareLinks]       = useState({})
+  const [dark, setDark]                   = useState(() => localStorage.getItem('theme') === 'dark')
+  const [user, setUser]                   = useState(null)
+  const [deletingId, setDeletingId]       = useState(null)
+  const [activeNav, setActiveNav]         = useState('files')
+  const [sidebarOpen, setSidebarOpen]     = useState(() => window.innerWidth >= 900)
   const [downloadModal, setDownloadModal] = useState(null)
-  const [shareModal, setShareModal]     = useState(null)
+  const [shareModal, setShareModal]       = useState(null)
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark)
@@ -146,7 +166,19 @@ export default function Dashboard() {
   }, [])
 
   async function loadFiles() {
-    try { const { data } = await api.get('/api/files'); setFiles(data) } catch {}
+    // Show cache instantly if available
+    if (_filesCache) {
+      setFiles(_filesCache)
+      setLoadingFiles(false)
+    } else {
+      setLoadingFiles(true)
+    }
+    try {
+      const { data } = await api.get('/api/files')
+      _filesCache = data
+      setFiles(data)
+    } catch {}
+    setLoadingFiles(false)
   }
 
   const onDrop = useCallback(async (accepted) => {
@@ -158,7 +190,9 @@ export default function Dashboard() {
       const { data } = await api.post('/api/files/upload-url', { name: file.name, size: file.size, mimeType: file.type, iv, salt })
       await fetch(data.signedUrl, { method: 'PUT', body: encryptedBlob, headers: { 'Content-Type': 'application/octet-stream', 'x-upsert': 'true' } })
       toast.success(`"${file.name}" encrypted & uploaded!`)
-      loadFiles(); setActiveNav('files')
+      _filesCache = null
+      loadFiles()
+      setActiveNav('files')
     } catch (e) {
       const msg = e.response?.data?.error || e.message
       if (msg?.toLowerCase().includes('quota')) {
@@ -202,7 +236,9 @@ export default function Dashboard() {
     if (!confirm('Delete this file permanently?')) return
     setDeletingId(id)
     await api.delete(`/api/files/${id}`)
-    setFiles(prev => prev.filter(f => f.id !== id))
+    const updated = files.filter(f => f.id !== id)
+    _filesCache = updated
+    setFiles(updated)
     setDeletingId(null)
     toast.success('File deleted.')
   }
@@ -228,8 +264,8 @@ export default function Dashboard() {
   const shadow        = d ? '0 1px 3px rgba(0,0,0,0.5)' : '0 1px 3px rgba(0,0,0,0.06)'
   const tokens = { card, cardBorder, textPrimary, textSecondary, accent, accentLight, inputBg, inputBorder }
 
-  const totalSize  = files.reduce((a, f) => a + (f.size || 0), 0)
-  const usedPct    = Math.min((totalSize / QUOTA) * 100, 100)
+  const totalSize   = files.reduce((a, f) => a + (f.size || 0), 0)
+  const usedPct     = Math.min((totalSize / QUOTA) * 100, 100)
   const isNearLimit = totalSize / QUOTA > 0.8
   const isFull      = totalSize >= QUOTA
 
@@ -240,7 +276,7 @@ export default function Dashboard() {
 
   const inputStyle = { width:'100%', padding:'12px 14px', borderRadius:11, border:`1.5px solid ${inputBorder}`, background:inputBg, color:textPrimary, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:'none' }
 
-  // ── Storage bar component ──────────────────────────────────────────────────
+  // ── Storage bar ────────────────────────────────────────────────────────────
   const StorageBar = () => (
     <div style={{ background:card, border:`1px solid ${isFull ? '#ef4444' : isNearLimit ? '#f59e0b' : cardBorder}`, borderRadius:16, padding:'16px 18px', marginBottom:24, boxShadow:shadow }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
@@ -261,21 +297,14 @@ export default function Dashboard() {
           transition:'width 0.4s ease',
         }}/>
       </div>
-      {isFull && (
-        <p style={{ fontSize:12, color:'#ef4444', marginTop:8 }}>
-          🔒 Storage full — delete files to upload more.
-        </p>
-      )}
-      {!isFull && isNearLimit && (
-        <p style={{ fontSize:12, color:'#f59e0b', marginTop:8 }}>
-          ⚠ You're using over 80% of your free storage.
-        </p>
-      )}
+      {isFull && <p style={{ fontSize:12, color:'#ef4444', marginTop:8 }}>🔒 Storage full — delete files to upload more.</p>}
+      {!isFull && isNearLimit && <p style={{ fontSize:12, color:'#f59e0b', marginTop:8 }}>⚠ You're using over 80% of your free storage.</p>}
     </div>
   )
 
   // ── Content ────────────────────────────────────────────────────────────────
   const renderContent = () => {
+
     if (activeNav === 'upload') return (
       <div>
         <h2 style={{ fontSize:22, fontWeight:700, color:textPrimary, marginBottom:6, fontFamily:"'DM Serif Display',serif" }}>Upload a File</h2>
@@ -420,12 +449,12 @@ export default function Dashboard() {
       </div>
     )
 
-    // My Files
+    // ── My Files ───────────────────────────────────────────────────────────
     return (
       <div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))', gap:12, marginBottom:16 }}>
           {[
-            { label:'Encrypted Files', value: String(files.length) },
+            { label:'Encrypted Files', value: loadingFiles ? '—' : String(files.length) },
             { label:'Encryption',      value: 'AES-256-GCM' },
           ].map(({ label, value }) => (
             <div key={label} style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:16, padding:'16px 18px', boxShadow:shadow }}>
@@ -446,7 +475,13 @@ export default function Dashboard() {
         </div>
 
         <div style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:16, overflow:'hidden', boxShadow:shadow }}>
-          {files.length === 0 ? (
+          {loadingFiles ? (
+            <>
+              <SkeletonRow divider={`1px solid ${divider}`} d={d} />
+              <SkeletonRow divider={`1px solid ${divider}`} d={d} />
+              <SkeletonRow divider="none" d={d} />
+            </>
+          ) : files.length === 0 ? (
             <div style={{ padding:'56px 24px', textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
               <div style={{ width:52, height:52, borderRadius:14, background:accentLight, display:'flex', alignItems:'center', justifyContent:'center', color:accent }}>{Icon.files}</div>
               <p style={{ color:textSecondary, fontSize:14 }}>No files uploaded yet</p>
@@ -464,9 +499,9 @@ export default function Dashboard() {
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:2, flexShrink:0 }}>
                   {[
-                    { ico: Icon.download, title:'Download', col: textPrimary,  fn: () => setDownloadModal(file) },
-                    { ico: Icon.link,     title:'Share',    col: accent,        fn: () => setShareModal(file.id) },
-                    { ico: Icon.trash,    title:'Delete',   col: '#ef4444',     fn: () => deleteFile(file.id) },
+                    { ico: Icon.download, title:'Download', col: textPrimary, fn: () => setDownloadModal(file) },
+                    { ico: Icon.link,     title:'Share',    col: accent,       fn: () => setShareModal(file.id) },
+                    { ico: Icon.trash,    title:'Delete',   col: '#ef4444',    fn: () => deleteFile(file.id) },
                   ].map(({ ico, title, col, fn }, idx) => (
                     <button key={idx} onClick={fn} title={title}
                       style={{ width:34, height:34, borderRadius:9, border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:textSecondary, transition:'all 0.15s' }}
@@ -504,6 +539,7 @@ export default function Dashboard() {
         @keyframes spin    { to { transform:rotate(360deg); } }
         @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
         @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes shimmer { 0%,100%{opacity:1} 50%{opacity:0.4} }
         ::-webkit-scrollbar { width:5px; }
         ::-webkit-scrollbar-thumb { background:${d?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.1)'}; border-radius:99px; }
       `}</style>
