@@ -233,14 +233,15 @@ export default function Dashboard() {
   }
 
   async function deleteFile(id) {
-    if (!confirm('Delete this file permanently?')) return
+    const file = files.find(f => f.id === id)
+    if (!confirm(`Delete "${file?.name}" permanently?`)) return
     setDeletingId(id)
     await api.delete(`/api/files/${id}`)
     const updated = files.filter(f => f.id !== id)
     _filesCache = updated
     setFiles(updated)
     setDeletingId(null)
-    toast.success('File deleted.')
+    toast.success(`"${file?.name}" deleted permanently.`)
   }
 
   // ── Theme ──────────────────────────────────────────────────────────────────
@@ -399,7 +400,7 @@ export default function Dashboard() {
       <div>
         <h2 style={{ fontSize:22, fontWeight:700, color:textPrimary, marginBottom:6, fontFamily:"'DM Serif Display',serif" }}>Security Overview</h2>
         <p style={{ fontSize:14, color:textSecondary, marginBottom:24 }}>How Veilora keeps your data safe.</p>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:14 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
           {[
             { title:'AES-256-GCM', desc:'Military-grade encryption applied in your browser before any data is sent.', badge:'Active' },
             { title:'Zero Knowledge', desc:'Your password never leaves your device. Server stores only encrypted blobs.', badge:'Verified' },
