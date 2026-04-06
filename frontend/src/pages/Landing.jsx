@@ -1,10 +1,21 @@
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { supabase } from '../supabase'
 
 export default function Landing() {
   const navigate = useNavigate()
   const [activeSection, setActiveSection] = useState('hero')
   const [scrolled, setScrolled] = useState(false)
+  const [session, setSession] = useState(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => {
+      setSession(s)
+      if (s) navigate('/dashboard')
+    })
+    return () => subscription.unsubscribe()
+  }, [navigate])
 
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
@@ -123,16 +134,17 @@ export default function Landing() {
             ))}
           </div>
 
-          <button className="btn-primary" onClick={() => navigate('/login')}
+          <button className="btn-primary"
+            onClick={() => session ? navigate('/dashboard') : navigate('/login')}
             style={{padding:'10px 24px', borderRadius:999, fontSize:14, fontFamily:'Inter,sans-serif'}}>
-            Start Now
+            {session ? 'Go to Dashboard' : 'Start Now'}
           </button>
         </nav>
       </header>
 
       <main>
 
-        {/* Hero — uses veilorabg as background */}
+        {/* Hero */}
         <section id="hero" style={{
           position:'relative', minHeight:'100vh',
           display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
@@ -141,7 +153,6 @@ export default function Landing() {
           backgroundSize:'cover', backgroundPosition:'center',
           backgroundRepeat:'no-repeat',
         }}>
-          {/* Dark overlay — replaces the low-opacity child div that caused blur */}
           <div style={{position:'absolute', inset:0, zIndex:0, background:'rgba(10,13,26,0.80)'}}/>
           <div className="glow-orb" style={{position:'absolute', top:'20%', left:'10%', width:400, height:400, borderRadius:'50%', background:'rgba(79,70,229,0.08)', filter:'blur(80px)', zIndex:1}}/>
           <div className="glow-orb" style={{position:'absolute', bottom:'20%', right:'10%', width:300, height:300, borderRadius:'50%', background:'rgba(124,131,255,0.06)', filter:'blur(60px)', zIndex:1, animationDelay:'2s'}}/>
@@ -159,9 +170,10 @@ export default function Landing() {
                 Veilora encrypts your files in your browser before upload. We never see your data. Ever. Your files. Your keys. Zero knowledge.
               </p>
               <div className="fade-up delay-4" style={{display:'flex', gap:16, flexWrap:'wrap'}}>
-                <button className="btn-primary" onClick={() => navigate('/login')}
+                <button className="btn-primary"
+                  onClick={() => session ? navigate('/dashboard') : navigate('/login')}
                   style={{padding:'14px 32px', borderRadius:999, fontSize:16, fontFamily:'Inter,sans-serif'}}>
-                  Start for Free
+                  {session ? 'Go to Dashboard' : 'Start for Free'}
                 </button>
                 <button className="btn-secondary" onClick={() => scrollTo('howitworks')}
                   style={{padding:'14px 32px', borderRadius:999, fontSize:16, fontFamily:'Inter,sans-serif'}}>
@@ -254,7 +266,6 @@ export default function Landing() {
               <div style={{height:4, width:80, background:'linear-gradient(90deg,#818cf8,#4f46e5)', borderRadius:999, margin:'0 auto'}}/>
             </div>
             <div style={{display:'grid', gridTemplateColumns:'2fr 1fr', gap:20, marginBottom:20}}>
-              {/* Main big card */}
               <div className="feature-card" style={{borderRadius:16, padding:40, position:'relative', overflow:'hidden'}}>
                 <div style={{position:'absolute', top:0, right:0, padding:24, opacity:0.06, fontSize:160, lineHeight:1}}>
                   <span className="material-symbols-outlined" style={{fontSize:160}}>security</span>
@@ -264,7 +275,6 @@ export default function Landing() {
                 </div>
                 <h3 style={{fontSize:28, fontWeight:800, color:'#fff', marginBottom:12}}>End-to-End Encryption</h3>
                 <p style={{color:'#64748b', fontSize:16, lineHeight:1.7, maxWidth:380}}>Every single bit is scrambled using AES-256-GCM before it ever hits the wire. Only the intended recipient with the correct password can unscramble it.</p>
-
               </div>
               <div className="feature-card" style={{borderRadius:16, padding:32, display:'flex', flexDirection:'column', justifyContent:'center'}}>
                 <span className="material-symbols-outlined" style={{color:'#818cf8', fontSize:24, marginBottom:14, display:'block'}}>dns</span>
@@ -313,7 +323,6 @@ export default function Landing() {
                 ))}
               </ul>
             </div>
-            {/* Security stats grid */}
             <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16}}>
               {[
                 { num:'256', unit:'bit', label:'AES-GCM Key' },
@@ -367,11 +376,11 @@ export default function Landing() {
             <h2 style={{fontSize:56, fontWeight:900, color:'#fff', letterSpacing:'-2px', lineHeight:1.1, marginBottom:20}}>Ready to share files the private way?</h2>
             <p style={{fontSize:18, color:'#64748b', marginBottom:44, lineHeight:1.7}}>Join security-conscious professionals who trust Veilora for their sensitive data.</p>
             <div style={{display:'flex', justifyContent:'center', gap:16, flexWrap:'wrap', marginBottom:24}}>
-              <button className="btn-primary" onClick={() => navigate('/login')}
+              <button className="btn-primary"
+                onClick={() => session ? navigate('/dashboard') : navigate('/login')}
                 style={{padding:'16px 40px', borderRadius:999, fontSize:17, fontFamily:'Inter,sans-serif'}}>
-                Create Free Account
+                {session ? 'Go to Dashboard' : 'Create Free Account'}
               </button>
-
             </div>
             <p style={{fontSize:13, color:'#334155'}}>No credit card. No tracking. No compromise.</p>
           </div>
@@ -396,7 +405,7 @@ export default function Landing() {
                   { label:'Security', action:() => scrollTo('security') },
                 ]},
                 { title:'Resources', links:[
-                  { label:'Get Started', action:() => navigate('/login') },
+                  { label:'Get Started', action:() => session ? navigate('/dashboard') : navigate('/login') },
                 ]},
                 { title:'Legal', links:[
                   { label:'Privacy Policy', href:'#' },
@@ -424,7 +433,6 @@ export default function Landing() {
           </div>
           <div style={{borderTop:'1px solid rgba(255,255,255,0.04)', paddingTop:24, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:16}}>
             <p style={{color:'#1e293b', fontSize:13}}>© 2025 Veilora. All rights reserved.</p>
-
           </div>
         </div>
       </footer>
