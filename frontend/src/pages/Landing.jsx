@@ -1,16 +1,12 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 
 export default function Landing() {
   const navigate = useNavigate()
   const [activeSection, setActiveSection] = useState('hero')
   const [scrolled, setScrolled] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-    setMobileMenuOpen(false)
-  }
+  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,16 +32,19 @@ export default function Landing() {
     { label: 'Get Started', id: 'cta' },
   ]
 
-  const isActive = (id) => activeSection === id
+  const isActive = (id) => {
+    if (id === 'hero') return activeSection === 'hero'
+    if (id === 'cta') return activeSection === 'cta'
+    return activeSection === id
+  }
 
   return (
-    <div style={{fontFamily:'Inter,sans-serif', background:'#0a0d1a', color:'#dee1f7', minHeight:'100vh', overflowX:'hidden'}}>
+    <div style={{fontFamily:'Inter,sans-serif', background:'#0a0d1a', color:'#dee1f7', minHeight:'100vh'}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
         .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { overflow-x: hidden; max-width: 100vw; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
         .btn-primary { background: linear-gradient(135deg, #7c83ff 0%, #4f46e5 100%); color: #fff; border: none; cursor: pointer; font-weight: 700; transition: all 0.3s ease; }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(79,70,229,0.4); }
@@ -82,131 +81,38 @@ export default function Landing() {
         .testimonial-card:hover { background: rgba(124,131,255,0.06); border-color: rgba(124,131,255,0.2); transform: translateY(-4px); }
         .logo-img { filter: brightness(0) invert(1); transition: all 0.3s ease; }
         .logo-img:hover { filter: brightness(0) invert(1) drop-shadow(0 0 8px rgba(165,180,252,0.8)); }
-
-        /* ── Mobile menu overlay ── */
-        .mobile-menu {
-          display: none;
-          position: fixed; inset: 0; z-index: 49;
-          background: rgba(10,13,26,0.97);
-          backdrop-filter: blur(20px);
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 32px;
-          padding-top: 80px;
-        }
-        .mobile-menu.open { display: flex; }
-        .mobile-menu-link {
-          background: none; border: none; font-family: Inter,sans-serif;
-          font-size: 22px; font-weight: 700; color: #94a3b8;
-          cursor: pointer; transition: color 0.2s; padding: 8px 0;
-        }
-        .mobile-menu-link:hover, .mobile-menu-link.active { color: #a5b4fc; }
-        .hamburger { display: none; }
-
-        /* ── Desktop section grids ── */
-        .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 48px; position: relative; z-index: 2; }
-        .steps-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; position: relative; }
-        .features-top-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .features-bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px; }
-        .security-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 0 48px; }
-        .testimonials-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
-        .trust-bar { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px; max-width: 1280px; margin: 0 auto; padding: 0 48px; }
-        .section-pad { max-width: 1280px; margin: 0 auto; padding: 0 48px; }
-        .footer-top { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 48px; margin-bottom: 48px; }
-        .footer-links-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 48px; }
-        .steps-divider { position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: #e2e8f0; z-index: 0; }
-
-        /* ── Comprehensive mobile overrides ── */
         @media (max-width: 768px) {
-          /* Prevent ALL horizontal overflow */
-          * { max-width: 100%; }
-
-          /* Nav */
-          .desktop-nav-links { display: none !important; }
-          .hamburger { display: flex !important; }
-
-          /* Hero */
-          .hero-grid { grid-template-columns: 1fr !important; padding: 0 20px !important; gap: 0 !important; }
-          .hero-mockup { display: none !important; }
-          h1 { font-size: 40px !important; letter-spacing: -1px !important; line-height: 1.1 !important; }
-
-          /* Trust bar */
-          .trust-bar { padding: 0 20px !important; gap: 14px !important; justify-content: flex-start !important; }
-
-          /* Section pads */
-          .section-pad { padding: 0 20px !important; }
-
-          /* How It Works steps */
-          .steps-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
-          .steps-divider { display: none !important; }
-          #howitworks { padding: 64px 0 !important; }
-          #howitworks h2 { font-size: 32px !important; }
-
-          /* Features */
-          #features { padding: 64px 0 !important; }
-          #features h2 { font-size: 30px !important; }
-          .features-top-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
-          .features-bottom-grid { grid-template-columns: 1fr 1fr !important; gap: 14px !important; }
-
-          /* Security */
-          .security-grid { grid-template-columns: 1fr !important; gap: 36px !important; padding: 0 20px !important; }
-          #security { padding: 64px 0 !important; }
-          #security h2 { font-size: 30px !important; }
-          .code-block { font-size: 11px !important; padding: 16px !important; overflow-x: auto !important; }
-
-          /* Testimonials */
-          .testimonials-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
-          .testimonials-section { padding: 64px 0 !important; }
-          .testimonials-section h2 { font-size: 30px !important; }
-
-          /* CTA */
-          #cta { padding: 80px 0 !important; }
-          #cta h2 { font-size: 36px !important; letter-spacing: -1px !important; }
-          #cta > div { padding: 0 20px !important; }
-          #cta .cta-btns { flex-direction: column !important; align-items: stretch !important; }
-          #cta .cta-btns > * { text-align: center !important; justify-content: center !important; }
-
-          /* Footer */
-          footer { padding: 40px 20px 24px !important; }
-          .footer-top { flex-direction: column !important; gap: 32px !important; }
-          .footer-links-grid { grid-template-columns: 1fr 1fr !important; gap: 24px !important; }
+          nav { padding: 12px 20px !important; }
+          nav > div:nth-child(2) { display: none !important; }
+          #hero > div > div { grid-template-columns: 1fr !important; padding: 0 20px !important; gap: 32px !important; }
+          #hero > div > div > div:nth-child(2) { display: none !important; }
+          h1 { font-size: 44px !important; }
+          #howitworks > div, #features > div, #security > div, #cta > div { padding: 0 20px !important; }
+          #howitworks > div > div:last-child { grid-template-columns: 1fr !important; }
+          #features > div > div:first-child { grid-template-columns: 1fr !important; }
+          #features > div > div:last-child { grid-template-columns: 1fr 1fr !important; }
+          #security > div { grid-template-columns: 1fr !important; gap: 40px !important; }
+          footer > div > div:first-child > div { flex-direction: column !important; gap: 24px !important; }
+          footer > div > div:first-child > div > div:last-child { grid-template-columns: 1fr 1fr !important; gap: 24px !important; }
         }
-
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
       `}</style>
-
-      {/* Mobile menu overlay */}
-      <div className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
-        {navLinks.map(({ label, id }) => (
-          <button key={id} className={`mobile-menu-link ${isActive(id) ? 'active' : ''}`}
-            onClick={() => scrollTo(id)}>
-            {label}
-          </button>
-        ))}
-        <button className="btn-primary" onClick={() => { navigate('/login'); setMobileMenuOpen(false) }}
-          style={{padding:'14px 40px', borderRadius:999, fontSize:16, fontFamily:'Inter,sans-serif', marginTop:8}}>
-          Start Now
-        </button>
-      </div>
 
       {/* Navbar */}
       <header style={{
         position:'fixed', top:0, width:'100%', zIndex:50,
-        background: scrolled ? 'rgba(10,13,26,0.92)' : 'transparent',
+        background: scrolled ? 'rgba(10,13,26,0.85)' : 'transparent',
         backdropFilter: scrolled ? 'blur(20px)' : 'none',
         borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
         transition: 'all 0.4s ease'
       }}>
         <nav style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 48px', maxWidth:1280, margin:'0 auto'}}>
-          {/* Logo */}
           <div style={{display:'flex', alignItems:'center', gap:10, cursor:'pointer'}}
             onClick={() => { scrollTo('hero'); setActiveSection('hero') }}>
             <img src="/logo.png" alt="Veilora" className="logo-img" style={{height:60, width:'auto'}} />
           </div>
 
-          {/* Desktop nav links */}
-          <div className="desktop-nav-links" style={{display:'flex', alignItems:'center', gap:32}}>
+          <div style={{display:'flex', alignItems:'center', gap:32}}>
             {navLinks.map(({ label, id }) => (
               <button key={id}
                 className={`nav-link ${isActive(id) ? 'active' : ''}`}
@@ -217,31 +123,32 @@ export default function Landing() {
             ))}
           </div>
 
-          {/* Desktop CTA */}
-          <button className="btn-primary desktop-nav-links" onClick={() => navigate('/login')}
-            style={{padding:'10px 24px', borderRadius:999, fontSize:14, fontFamily:'Inter,sans-serif', display:'flex'}}>
+          <button className="btn-primary" onClick={() => navigate('/login')}
+            style={{padding:'10px 24px', borderRadius:999, fontSize:14, fontFamily:'Inter,sans-serif'}}>
             Start Now
           </button>
-
-          {/* Mobile: hamburger + start now */}
-          <div className="hamburger" style={{alignItems:'center', gap:10}}>
-            <button className="btn-primary" onClick={() => navigate('/login')}
-              style={{padding:'9px 18px', borderRadius:999, fontSize:13, fontFamily:'Inter,sans-serif'}}>
-              Start Now
-            </button>
-            <button onClick={() => setMobileMenuOpen(o => !o)}
-              style={{width:40, height:40, borderRadius:10, border:'1px solid rgba(255,255,255,0.12)', background:'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'#dee1f7', flexShrink:0}}>
-              {mobileMenuOpen
-                ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-              }
-            </button>
-          </div>
         </nav>
       </header>
 
       <main>
-        {/* Hero */}
+        {/* Back to home button — shown when navigated from dashboard */}
+        <button onClick={() => navigate(-1)}
+          style={{
+            position:'fixed', top:20, left:20, zIndex:100,
+            display:'flex', alignItems:'center', justifyContent:'center',
+            width:44, height:44, borderRadius:12,
+            background:'rgba(255,255,255,0.08)', backdropFilter:'blur(12px)',
+            border:'1px solid rgba(255,255,255,0.12)',
+            cursor:'pointer', color:'#fff', transition:'all 0.2s ease',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.15)'; e.currentTarget.style.transform='translateX(-2px)' }}
+          onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.08)'; e.currentTarget.style.transform='translateX(0)' }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        {/* Hero — uses veilorabg as background */}
         <section id="hero" style={{
           position:'relative', minHeight:'100vh',
           display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
@@ -250,11 +157,12 @@ export default function Landing() {
           backgroundSize:'cover', backgroundPosition:'center',
           backgroundRepeat:'no-repeat',
         }}>
+          {/* Dark overlay — replaces the low-opacity child div that caused blur */}
           <div style={{position:'absolute', inset:0, zIndex:0, background:'rgba(10,13,26,0.80)'}}/>
           <div className="glow-orb" style={{position:'absolute', top:'20%', left:'10%', width:400, height:400, borderRadius:'50%', background:'rgba(79,70,229,0.08)', filter:'blur(80px)', zIndex:1}}/>
           <div className="glow-orb" style={{position:'absolute', bottom:'20%', right:'10%', width:300, height:300, borderRadius:'50%', background:'rgba(124,131,255,0.06)', filter:'blur(60px)', zIndex:1, animationDelay:'2s'}}/>
 
-          <div className="hero-grid">
+          <div style={{position:'relative', zIndex:2, maxWidth:1280, margin:'0 auto', padding:'0 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:64, alignItems:'center', width:'100%'}}>
             <div>
               <div className="fade-up delay-1" style={{display:'inline-flex', alignItems:'center', gap:8, padding:'6px 16px', borderRadius:999, background:'rgba(124,131,255,0.1)', border:'1px solid rgba(124,131,255,0.2)', marginBottom:28}}>
                 <span className="pulse-dot" style={{width:7, height:7, borderRadius:'50%', background:'#818cf8', display:'inline-block'}}/>
@@ -278,8 +186,8 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Mockup — hidden on mobile via .hero-mockup class */}
-            <div className="hero-mockup float fade-up delay-5">
+            {/* Mockup */}
+            <div className="float fade-up delay-5">
               <div className="glass" style={{borderRadius:16, padding:28, boxShadow:'0 24px 80px rgba(0,0,0,0.4)'}}>
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24}}>
                   <div style={{display:'flex', gap:6}}>
@@ -313,7 +221,7 @@ export default function Landing() {
 
         {/* Trust Bar */}
         <section style={{padding:'28px 0', background:'rgba(255,255,255,0.02)', borderTop:'1px solid rgba(255,255,255,0.05)', borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
-          <div className="trust-bar">
+          <div style={{maxWidth:1280, margin:'0 auto', padding:'0 48px', display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:24}}>
             {[
               { icon:'shield', label:'AES-256-GCM Encryption' },
               { icon:'visibility_off', label:'Zero Knowledge Architecture' },
@@ -330,13 +238,13 @@ export default function Landing() {
 
         {/* How It Works */}
         <section id="howitworks" style={{padding:'112px 0', background:'#f8fafc', color:'#0f172a'}}>
-          <div className="section-pad">
+          <div style={{maxWidth:1280, margin:'0 auto', padding:'0 48px'}}>
             <div style={{textAlign:'center', marginBottom:72}}>
               <h2 style={{fontSize:48, fontWeight:800, letterSpacing:'-1.5px', marginBottom:16}}>Privacy by design, not by policy</h2>
               <div style={{height:4, width:80, background:'linear-gradient(90deg,#818cf8,#4f46e5)', borderRadius:999, margin:'0 auto'}}/>
             </div>
-            <div className="steps-grid">
-              <div className="steps-divider"/>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:32, position:'relative'}}>
+              <div style={{position:'absolute', top:'50%', left:0, width:'100%', height:1, background:'#e2e8f0', zIndex:0}}/>
               {[
                 { icon:'upload', step:'1. Upload', desc:'Your browser encrypts the file with AES-256-GCM before it ever leaves your machine.' },
                 { icon:'share', step:'2. Share', desc:'Generate a secure link with optional expiry. Share the password separately for full zero-knowledge.' },
@@ -356,12 +264,13 @@ export default function Landing() {
 
         {/* Features */}
         <section id="features" style={{padding:'112px 0', background:'#0a0d1a'}}>
-          <div className="section-pad">
+          <div style={{maxWidth:1280, margin:'0 auto', padding:'0 48px'}}>
             <div style={{textAlign:'center', marginBottom:56}}>
               <h2 style={{fontSize:44, fontWeight:800, color:'#fff', letterSpacing:'-1px', marginBottom:16}}>Everything you need for secure sharing</h2>
               <div style={{height:4, width:80, background:'linear-gradient(90deg,#818cf8,#4f46e5)', borderRadius:999, margin:'0 auto'}}/>
             </div>
-            <div className="features-top-grid">
+            <div style={{display:'grid', gridTemplateColumns:'2fr 1fr', gap:20, marginBottom:20}}>
+              {/* Main big card */}
               <div className="feature-card" style={{borderRadius:16, padding:40, position:'relative', overflow:'hidden'}}>
                 <div style={{position:'absolute', top:0, right:0, padding:24, opacity:0.06, fontSize:160, lineHeight:1}}>
                   <span className="material-symbols-outlined" style={{fontSize:160}}>security</span>
@@ -379,7 +288,7 @@ export default function Landing() {
                 <p style={{color:'#64748b', fontSize:14, lineHeight:1.7}}>We store only encrypted blobs. No keys, no passwords, no way to read your data. Ever.</p>
               </div>
             </div>
-            <div className="features-bottom-grid">
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:20}}>
               {[
                 { icon:'link', title:'Secure Share Links', desc:'Set expiry times and revoke access anytime. Links are worthless without the password.' },
                 { icon:'toggle_on', title:'Privacy First Toggle', desc:'Zero telemetry, no cookies, no analytics. Every privacy setting is on by default.' },
@@ -397,9 +306,9 @@ export default function Landing() {
         </section>
 
         {/* Security */}
-        <section id="security" style={{padding:'112px 0', background:'#060810', position:'relative', overflow:'hidden'}}>
+        <section id="security" style={{padding:'72px 0', background:'#060810', position:'relative', overflow:'hidden'}}>
           <div className="glow-orb" style={{position:'absolute', top:'30%', right:'5%', width:350, height:350, borderRadius:'50%', background:'rgba(79,70,229,0.06)', filter:'blur(80px)'}}/>
-          <div className="security-grid">
+          <div style={{maxWidth:1280, margin:'0 auto', padding:'0 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:56, alignItems:'center', position:'relative', zIndex:1}}>
             <div>
               <h2 style={{fontSize:48, fontWeight:800, color:'#fff', letterSpacing:'-1.5px', lineHeight:1.1, marginBottom:36}}>
                 Your password never <br/>leaves your device
@@ -420,40 +329,33 @@ export default function Landing() {
                 ))}
               </ul>
             </div>
-            {/* Code block */}
-            <div style={{borderRadius:16, overflow:'hidden', border:'1px solid rgba(255,255,255,0.06)', boxShadow:'0 24px 80px rgba(0,0,0,0.5)'}}>
-              <div style={{background:'#1e2133', padding:'12px 20px', display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                <div style={{display:'flex', gap:6}}>
-                  <div style={{width:11, height:11, borderRadius:'50%', background:'#ff5f56'}}/>
-                  <div style={{width:11, height:11, borderRadius:'50%', background:'#ffbd2e'}}/>
-                  <div style={{width:11, height:11, borderRadius:'50%', background:'#27c93f'}}/>
+            {/* Security stats grid */}
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16}}>
+              {[
+                { num:'256', unit:'bit', label:'AES-GCM Key' },
+                { num:'310K', unit:'iter', label:'PBKDF2 Rounds' },
+                { num:'0', unit:'bytes', label:'Sent to Server' },
+                { num:'∞', unit:'', label:'Unique IVs per File' },
+              ].map(({ num, unit, label }) => (
+                <div key={label} style={{borderRadius:16, padding:'24px 20px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)'}}>
+                  <p style={{fontSize:36, fontWeight:900, color:'#fff', letterSpacing:'-1px', lineHeight:1}}>
+                    {num}<span style={{fontSize:16, color:'#818cf8', marginLeft:4, fontWeight:600}}>{unit}</span>
+                  </p>
+                  <p style={{fontSize:13, color:'#64748b', marginTop:8, fontWeight:500}}>{label}</p>
                 </div>
-                <span style={{fontSize:10, fontFamily:'monospace', color:'#475569', textTransform:'uppercase', letterSpacing:'0.1em'}}>crypto_engine.js</span>
-              </div>
-              <div className="code-block" style={{padding:28, fontFamily:'monospace', fontSize:13, lineHeight:1.8, background:'#0d1117', overflowX:'auto'}}>
-                <p style={{color:'#7c83ff'}}>async <span style={{color:'#fff'}}>function</span> <span style={{color:'#a5b4fc'}}>encryptFile</span>(fileData, masterKey) {'{'}</p>
-                <p style={{color:'#475569', paddingLeft:16}}>// Derive 256-bit AES key locally</p>
-                <p style={{color:'#7c83ff', paddingLeft:16}}><span style={{color:'#fff'}}>const</span> key = <span style={{color:'#fff'}}>await</span> window.crypto.subtle.deriveKey(</p>
-                <p style={{color:'#7c83ff', paddingLeft:32}}>{'{ name: '}<span style={{color:'#34d399'}}>"PBKDF2"</span>{', salt, iterations: '}<span style={{color:'#fb923c'}}>310000</span>{' },'}</p>
-                <p style={{color:'#7c83ff', paddingLeft:32}}>{'masterKey, { name: '}<span style={{color:'#34d399'}}>"AES-GCM"</span>{', length: '}<span style={{color:'#fb923c'}}>256</span>{' },'}</p>
-                <p style={{color:'#7c83ff', paddingLeft:32}}><span style={{color:'#fff'}}>false</span>{', ['}<span style={{color:'#34d399'}}>"encrypt"</span>{']'}</p>
-                <p style={{color:'#7c83ff', paddingLeft:16}}>);</p>
-                <p style={{color:'#475569', paddingLeft:16}}>// Encryption never touches our servers</p>
-                <p style={{color:'#7c83ff', paddingLeft:16}}><span style={{color:'#fff'}}>return await</span> crypto.subtle.encrypt({'{ name: '}<span style={{color:'#34d399'}}>"AES-GCM"</span>{', iv },'} key, fileData);</p>
-                <p style={{color:'#7c83ff'}}>{'}'}</p>
-              </div>
+              ))}
             </div>
           </div>
         </section>
 
         {/* Testimonials */}
-        <section className="testimonials-section" style={{padding:'112px 0', background:'#0a0d1a'}}>
-          <div className="section-pad">
+        <section style={{padding:'112px 0', background:'#0a0d1a'}}>
+          <div style={{maxWidth:1280, margin:'0 auto', padding:'0 48px'}}>
             <div style={{textAlign:'center', marginBottom:56}}>
               <h2 style={{fontSize:44, fontWeight:800, color:'#fff', letterSpacing:'-1px', marginBottom:16}}>Trusted by security professionals</h2>
               <div style={{height:4, width:80, background:'linear-gradient(90deg,#818cf8,#4f46e5)', borderRadius:999, margin:'0 auto'}}/>
             </div>
-            <div className="testimonials-grid">
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:24}}>
               {[
                 { quote:"Finally a file sharing tool that actually practices what it preaches. The zero-knowledge model is real — I verified it myself.", name:"Alex R.", role:"Penetration Tester" },
                 { quote:"We switched our entire team to Veilora for client documents. Encryption before upload — that's the only way I trust cloud storage.", name:"Priya M.", role:"CISO, FinTech Startup" },
@@ -480,19 +382,12 @@ export default function Landing() {
           <div style={{maxWidth:640, margin:'0 auto', padding:'0 48px', textAlign:'center', position:'relative', zIndex:1}}>
             <h2 style={{fontSize:56, fontWeight:900, color:'#fff', letterSpacing:'-2px', lineHeight:1.1, marginBottom:20}}>Ready to share files the private way?</h2>
             <p style={{fontSize:18, color:'#64748b', marginBottom:44, lineHeight:1.7}}>Join security-conscious professionals who trust Veilora for their sensitive data.</p>
-            <div className="cta-btns" style={{display:'flex', justifyContent:'center', gap:16, flexWrap:'wrap', marginBottom:24}}>
+            <div style={{display:'flex', justifyContent:'center', gap:16, flexWrap:'wrap', marginBottom:24}}>
               <button className="btn-primary" onClick={() => navigate('/login')}
                 style={{padding:'16px 40px', borderRadius:999, fontSize:17, fontFamily:'Inter,sans-serif'}}>
                 Create Free Account
               </button>
-              <a href="https://github.com/AronJoseph96/Veilora" target="_blank" rel="noopener noreferrer"
-                className="btn-secondary"
-                style={{padding:'16px 40px', borderRadius:999, fontSize:17, fontFamily:'Inter,sans-serif', display:'flex', alignItems:'center', gap:10, textDecoration:'none'}}>
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-                </svg>
-                View on GitHub
-              </a>
+
             </div>
             <p style={{fontSize:13, color:'#334155'}}>No credit card. No tracking. No compromise.</p>
           </div>
@@ -502,14 +397,14 @@ export default function Landing() {
       {/* Footer */}
       <footer style={{background:'#04060f', borderTop:'1px solid rgba(255,255,255,0.04)', padding:'56px 48px 32px'}}>
         <div style={{maxWidth:1280, margin:'0 auto'}}>
-          <div className="footer-top">
+          <div style={{display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:48, marginBottom:48}}>
             <div style={{maxWidth:280}}>
               <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:16}}>
                 <img src="/logo.png" alt="Veilora" className="logo-img" style={{height:48, width:'auto'}}/>
               </div>
               <p style={{color:'#334155', fontSize:14, lineHeight:1.7}}>The sovereign vault for your digital assets. Privacy by default, security by mathematics.</p>
             </div>
-            <div className="footer-links-grid">
+            <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:48}}>
               {[
                 { title:'Platform', links:[
                   { label:'How It Works', action:() => scrollTo('howitworks') },
@@ -517,7 +412,6 @@ export default function Landing() {
                   { label:'Security', action:() => scrollTo('security') },
                 ]},
                 { title:'Resources', links:[
-                  { label:'GitHub', href:'https://github.com/AronJoseph96/Veilora' },
                   { label:'Get Started', action:() => navigate('/login') },
                 ]},
                 { title:'Legal', links:[
@@ -546,13 +440,7 @@ export default function Landing() {
           </div>
           <div style={{borderTop:'1px solid rgba(255,255,255,0.04)', paddingTop:24, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:16}}>
             <p style={{color:'#1e293b', fontSize:13}}>© 2025 Veilora. All rights reserved.</p>
-            <a href="https://github.com/AronJoseph96/Veilora" target="_blank" rel="noopener noreferrer"
-              style={{color:'#334155', transition:'color 0.2s'}}
-              onMouseEnter={e => e.currentTarget.style.color='#fff'} onMouseLeave={e => e.currentTarget.style.color='#334155'}>
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-              </svg>
-            </a>
+
           </div>
         </div>
       </footer>
