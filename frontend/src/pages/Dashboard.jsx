@@ -45,6 +45,24 @@ function formatSize(bytes) {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
 }
 
+// ─── Password strength ────────────────────────────────────────────────────────
+function getPasswordStrength(pw) {
+  if (!pw) return null
+  let score = 0
+  if (pw.length >= 8)  score++
+  if (pw.length >= 12) score++
+  if (pw.length >= 16) score++
+  if (/[A-Z]/.test(pw)) score++
+  if (/[a-z]/.test(pw)) score++
+  if (/[0-9]/.test(pw)) score++
+  if (/[^A-Za-z0-9]/.test(pw)) score++
+
+  if (score <= 2) return { level: 0, label: 'Weak',   color: '#ef4444', width: '25%' }
+  if (score <= 3) return { level: 1, label: 'Fair',   color: '#f59e0b', width: '50%' }
+  if (score <= 5) return { level: 2, label: 'Good',   color: '#3b82f6', width: '75%' }
+  return           { level: 3, label: 'Strong', color: '#22c55e', width: '100%' }
+}
+
 // ─── Download password modal ──────────────────────────────────────────────────
 function DownloadModal({ file, onConfirm, onCancel, tokens }) {
   const [pw, setPw] = useState('')
@@ -190,6 +208,7 @@ export default function Dashboard() {
       const { data } = await api.post('/api/files/upload-url', { name: file.name, size: file.size, mimeType: file.type, iv, salt })
       await fetch(data.signedUrl, { method: 'PUT', body: encryptedBlob, headers: { 'Content-Type': 'application/octet-stream', 'x-upsert': 'true' } })
       toast.success(`"${file.name}" encrypted & uploaded!`)
+      setPassword('')
       _filesCache = null
       loadFiles()
       setActiveNav('files')
@@ -233,15 +252,14 @@ export default function Dashboard() {
   }
 
   async function deleteFile(id) {
-    const file = files.find(f => f.id === id)
-    if (!confirm(`Delete "${file?.name}" permanently?`)) return
+    if (!confirm('Delete this file permanently?')) return
     setDeletingId(id)
     await api.delete(`/api/files/${id}`)
     const updated = files.filter(f => f.id !== id)
     _filesCache = updated
     setFiles(updated)
     setDeletingId(null)
-    toast.success(`"${file?.name}" deleted permanently.`)
+    toast.success('File deleted.')
   }
 
   // ── Theme ──────────────────────────────────────────────────────────────────
@@ -327,7 +345,40 @@ export default function Dashboard() {
               {showPassword ? Icon.eyeOff : Icon.eye}
             </button>
           </div>
-          <p style={{ fontSize:12, color:textMuted, marginTop:10 }}>This password never leaves your browser — the server has zero knowledge of it.</p>
+
+          {/* ── Password strength meter ── */}
+          {(() => {
+            const strength = getPasswordStrength(password)
+            if (!strength) return (
+              <p style={{ fontSize:12, color:textMuted, marginTop:10 }}>This password never leaves your browser — the server has zero knowledge of it.</p>
+            )
+            return (
+              <div style={{ marginTop:12 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+                  <span style={{ fontSize:12, color:textSecondary }}>Password strength</span>
+                  <span style={{ fontSize:12, fontWeight:700, color:strength.color, transition:'color 0.3s' }}>{strength.label}</span>
+                </div>
+                <div style={{ height:5, background:inputBg, borderRadius:999, overflow:'hidden' }}>
+                  <div style={{
+                    height:'100%', borderRadius:999,
+                    width: strength.width,
+                    background: strength.color,
+                    transition:'width 0.35s cubic-bezier(0.4,0,0.2,1), background 0.35s ease',
+                  }}/>
+                </div>
+                {strength.level < 2 && (
+                  <p style={{ fontSize:12, color: strength.color, marginTop:8, opacity:0.85 }}>
+                    {strength.level === 0
+                      ? 'Too weak — add uppercase, numbers, or symbols.'
+                      : 'Could be stronger — try a longer or more complex password.'}
+                  </p>
+                )}
+                {strength.level >= 2 && (
+                  <p style={{ fontSize:12, color:textMuted, marginTop:8 }}>This password never leaves your browser — the server has zero knowledge of it.</p>
+                )}
+              </div>
+            )
+          })()}
         </div>
 
         <div {...getRootProps()} style={{
@@ -453,7 +504,7 @@ export default function Dashboard() {
     // ── My Files ───────────────────────────────────────────────────────────
     return (
       <div>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))', gap:12, marginBottom:16 }}>
           {[
             { label:'Encrypted Files', value: loadingFiles ? '—' : String(files.length) },
             { label:'Encryption',      value: 'AES-256-GCM' },
