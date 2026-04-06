@@ -131,23 +131,7 @@ export default function Landing() {
       </header>
 
       <main>
-        {/* Back to home button — shown when navigated from dashboard */}
-        <button onClick={() => navigate(-1)}
-          style={{
-            position:'fixed', top:20, left:20, zIndex:100,
-            display:'flex', alignItems:'center', justifyContent:'center',
-            width:44, height:44, borderRadius:12,
-            background:'rgba(255,255,255,0.08)', backdropFilter:'blur(12px)',
-            border:'1px solid rgba(255,255,255,0.12)',
-            cursor:'pointer', color:'#fff', transition:'all 0.2s ease',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.15)'; e.currentTarget.style.transform='translateX(-2px)' }}
-          onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.08)'; e.currentTarget.style.transform='translateX(0)' }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </button>
+
         {/* Hero — uses veilorabg as background */}
         <section id="hero" style={{
           position:'relative', minHeight:'100vh',
@@ -280,9 +264,9 @@ export default function Landing() {
                 </div>
                 <h3 style={{fontSize:28, fontWeight:800, color:'#fff', marginBottom:12}}>End-to-End Encryption</h3>
                 <p style={{color:'#64748b', fontSize:16, lineHeight:1.7, maxWidth:380}}>Every single bit is scrambled using AES-256-GCM before it ever hits the wire. Only the intended recipient with the correct password can unscramble it.</p>
-                <div style={{marginTop:28, height:160, borderRadius:12, background:'linear-gradient(135deg,#1e1b4b,#312e81,#1e1b4b)', border:'1px solid rgba(255,255,255,0.06)', opacity:0.7}}/>
+
               </div>
-              <div className="feature-card" style={{borderRadius:16, padding:32}}>
+              <div className="feature-card" style={{borderRadius:16, padding:32, display:'flex', flexDirection:'column', justifyContent:'center'}}>
                 <span className="material-symbols-outlined" style={{color:'#818cf8', fontSize:24, marginBottom:14, display:'block'}}>dns</span>
                 <h4 style={{fontSize:18, fontWeight:700, color:'#fff', marginBottom:8}}>Zero Knowledge Server</h4>
                 <p style={{color:'#64748b', fontSize:14, lineHeight:1.7}}>We store only encrypted blobs. No keys, no passwords, no way to read your data. Ever.</p>

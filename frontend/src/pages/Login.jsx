@@ -169,21 +169,23 @@ export default function Login() {
       {/* Back to Home */}
       <button
         onClick={() => navigate('/')}
+        title="Back to home"
         style={{
-          position: 'fixed', top: 20, left: 20,
-          display: 'flex', alignItems: 'center', gap: 6,
-          background: toggleBg, border: `1.5px solid ${toggleBorder}`,
-          color: textSecondary, borderRadius: 12, padding: '9px 16px',
-          fontSize: 13, fontWeight: 500, fontFamily: "'DM Sans', sans-serif",
-          cursor: 'pointer', transition: 'all 0.2s ease', zIndex: 100,
+          position: 'fixed', top: 20, left: 20, zIndex: 100,
+          width: 44, height: 44, borderRadius: 12,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)',
+          backdropFilter: 'blur(12px)',
+          border: `1px solid ${dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)'}`,
+          cursor: 'pointer', color: dark ? '#fff' : '#1a1714',
+          transition: 'all 0.2s ease',
         }}
-        onMouseEnter={e => { e.currentTarget.style.color = textPrimary; e.currentTarget.style.transform = 'translateX(-2px)' }}
-        onMouseLeave={e => { e.currentTarget.style.color = textSecondary; e.currentTarget.style.transform = 'translateX(0)' }}
+        onMouseEnter={e => { e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.10)'; e.currentTarget.style.transform = 'translateX(-2px)' }}
+        onMouseLeave={e => { e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)'; e.currentTarget.style.transform = 'translateX(0)' }}
       >
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
-        Home
       </button>
 
       {/* Card */}
@@ -206,12 +208,13 @@ export default function Login() {
             src="/logo.png"
             alt="Veilora"
             style={{
-              height: 96,
+              height: 72,
               width: 'auto',
               marginBottom: 8,
               filter: dark ? 'brightness(0) invert(1)' : 'none',
             }}
           />
+          <span style={{ fontSize: 13, color: textSecondary, marginTop: 2 }}>Zero-knowledge file sharing</span>
         </div>
 
         {/* Heading */}

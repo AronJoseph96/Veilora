@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast, Toaster } from '../toast'
 import { useDropzone } from 'react-dropzone'
 import { supabase } from '../supabase'
@@ -119,6 +120,7 @@ function ShareModal({ onConfirm, onCancel, tokens }) {
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function Dashboard() {
+  const navigate = useNavigate()
   const [files, setFiles]               = useState([])
   const [password, setPassword]         = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -526,15 +528,14 @@ export default function Dashboard() {
             onMouseLeave={e => e.currentTarget.style.background = card}>
             {Icon.menu}
           </button>
-          {/* Back to Home */}
-          <button onClick={() => { supabase.auth.signOut().then(() => window.location.href = '/') }}
-            style={{ height:38, display:'flex', alignItems:'center', gap:7, padding:'0 14px', borderRadius:10, border:`1px solid ${cardBorder}`, background:card, cursor:'pointer', color:textSecondary, fontSize:13, fontWeight:500, fontFamily:"'DM Sans',sans-serif", boxShadow:shadow, transition:'all 0.15s', flexShrink:0 }}
+          {/* Back to Home — keeps session alive */}
+          <button onClick={() => navigate('/')} title="Back to home"
+            style={{ width:38, height:38, borderRadius:10, border:`1px solid ${cardBorder}`, background:card, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:textSecondary, flexShrink:0, boxShadow:shadow, transition:'all 0.15s' }}
             onMouseEnter={e => { e.currentTarget.style.background = hoverBg; e.currentTarget.style.color = textPrimary; e.currentTarget.style.transform='translateX(-2px)' }}
             onMouseLeave={e => { e.currentTarget.style.background = card; e.currentTarget.style.color = textSecondary; e.currentTarget.style.transform='translateX(0)' }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
-            Home
           </button>
           <div style={{ display:'flex', alignItems:'center', gap:7, marginLeft:'auto' }}>
             <div style={{ width:6, height:6, borderRadius:'50%', background:'#22c55e', flexShrink:0 }} />
