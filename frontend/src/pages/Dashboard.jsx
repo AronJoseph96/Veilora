@@ -35,6 +35,8 @@ const NAV = [
   { id: 'settings', label: 'Settings',    icon: 'settings' },
 ]
 
+const QUOTA = 40 * 1024 * 1024 // 40 MB
+
 function formatSize(bytes) {
   if (!bytes) return '0 B'
   if (bytes < 1024) return bytes + ' B'
@@ -78,10 +80,6 @@ function ShareModal({ onConfirm, onCancel, tokens }) {
   function submit() {
     const val = hours.trim() === '' ? null : parseFloat(hours)
     onConfirm(val)
-  }
-  function expiryLabel() {
-    const opts = { '0.083':'5 minutes','0.167':'10 minutes','0.333':'20 minutes','0.667':'40 minutes','1':'1 hour','2':'2 hours','4':'4 hours','7':'7 hours','14':'14 hours' }
-    return hours ? opts[hours] || hours + 'h' : null
   }
   return (
     <div style={{ position:'fixed', inset:0, zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:20, background:'rgba(0,0,0,0.5)', backdropFilter:'blur(4px)', animation:'fadeIn 0.2s ease' }}
@@ -161,7 +159,14 @@ export default function Dashboard() {
       await fetch(data.signedUrl, { method: 'PUT', body: encryptedBlob, headers: { 'Content-Type': 'application/octet-stream', 'x-upsert': 'true' } })
       toast.success(`"${file.name}" encrypted & uploaded!`)
       loadFiles(); setActiveNav('files')
-    } catch (e) { toast.error('Upload failed: ' + e.message) }
+    } catch (e) {
+      const msg = e.response?.data?.error || e.message
+      if (msg?.toLowerCase().includes('quota')) {
+        toast.error('🔒 Storage full — 40 MB free limit reached. Delete files to free up space.')
+      } else {
+        toast.error('Upload failed: ' + msg)
+      }
+    }
     setUploading(false)
   }, [password])
 
@@ -202,7 +207,7 @@ export default function Dashboard() {
     toast.success('File deleted.')
   }
 
-  // ── Theme ─────────────────────────────────────────────────────────────────────
+  // ── Theme ──────────────────────────────────────────────────────────────────
   const d = dark
   const bg            = d ? '#0c0c12'                    : '#f5f0eb'
   const sidebar       = d ? '#111118'                    : '#ffffff'
@@ -223,22 +228,61 @@ export default function Dashboard() {
   const shadow        = d ? '0 1px 3px rgba(0,0,0,0.5)' : '0 1px 3px rgba(0,0,0,0.06)'
   const tokens = { card, cardBorder, textPrimary, textSecondary, accent, accentLight, inputBg, inputBorder }
 
-  const totalSize = files.reduce((a, f) => a + (f.size || 0), 0)
+  const totalSize  = files.reduce((a, f) => a + (f.size || 0), 0)
+  const usedPct    = Math.min((totalSize / QUOTA) * 100, 100)
+  const isNearLimit = totalSize / QUOTA > 0.8
+  const isFull      = totalSize >= QUOTA
 
   function navClick(id) {
     setActiveNav(id)
     if (window.innerWidth < 900) setSidebarOpen(false)
   }
 
-  // ── Input style (as object for inline use) ────────────────────────────────────
   const inputStyle = { width:'100%', padding:'12px 14px', borderRadius:11, border:`1.5px solid ${inputBorder}`, background:inputBg, color:textPrimary, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:'none' }
 
-  // ── Content ───────────────────────────────────────────────────────────────────
+  // ── Storage bar component ──────────────────────────────────────────────────
+  const StorageBar = () => (
+    <div style={{ background:card, border:`1px solid ${isFull ? '#ef4444' : isNearLimit ? '#f59e0b' : cardBorder}`, borderRadius:16, padding:'16px 18px', marginBottom:24, boxShadow:shadow }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+        <span style={{ fontSize:13, fontWeight:600, color:textPrimary }}>Storage Used</span>
+        <span style={{ fontSize:13, fontWeight:600, color: isFull ? '#ef4444' : isNearLimit ? '#f59e0b' : textSecondary }}>
+          {formatSize(totalSize)} <span style={{ fontWeight:400, color:textSecondary }}>/ 40 MB</span>
+        </span>
+      </div>
+      <div style={{ height:7, background:inputBg, borderRadius:999, overflow:'hidden' }}>
+        <div style={{
+          height:'100%', borderRadius:999,
+          width:`${usedPct}%`,
+          background: isFull
+            ? '#ef4444'
+            : isNearLimit
+              ? 'linear-gradient(90deg,#f59e0b,#ef4444)'
+              : `linear-gradient(90deg,${accent},${d ? '#a5a0ff' : '#6b6b6b'})`,
+          transition:'width 0.4s ease',
+        }}/>
+      </div>
+      {isFull && (
+        <p style={{ fontSize:12, color:'#ef4444', marginTop:8 }}>
+          🔒 Storage full — delete files to upload more.
+        </p>
+      )}
+      {!isFull && isNearLimit && (
+        <p style={{ fontSize:12, color:'#f59e0b', marginTop:8 }}>
+          ⚠ You're using over 80% of your free storage.
+        </p>
+      )}
+    </div>
+  )
+
+  // ── Content ────────────────────────────────────────────────────────────────
   const renderContent = () => {
     if (activeNav === 'upload') return (
       <div>
         <h2 style={{ fontSize:22, fontWeight:700, color:textPrimary, marginBottom:6, fontFamily:"'DM Serif Display',serif" }}>Upload a File</h2>
         <p style={{ fontSize:14, color:textSecondary, marginBottom:24 }}>Files are encrypted in your browser. The server never sees your data.</p>
+
+        <StorageBar />
+
         <div style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:16, padding:24, marginBottom:20, boxShadow:shadow }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
             <span style={{ color:accent }}>{Icon.key}</span>
@@ -255,12 +299,26 @@ export default function Dashboard() {
           </div>
           <p style={{ fontSize:12, color:textMuted, marginTop:10 }}>This password never leaves your browser — the server has zero knowledge of it.</p>
         </div>
-        <div {...getRootProps()} style={{ background: isDragActive ? accentLight : card, border:`2px dashed ${isDragActive ? accent : cardBorder}`, borderRadius:16, padding:'52px 24px', textAlign:'center', cursor:'pointer', transition:'all 0.2s', boxShadow:shadow }}>
-          <input {...getInputProps()} />
+
+        <div {...getRootProps()} style={{
+          background: isFull ? (d ? 'rgba(239,68,68,0.05)' : '#fef2f2') : isDragActive ? accentLight : card,
+          border:`2px dashed ${isFull ? '#ef4444' : isDragActive ? accent : cardBorder}`,
+          borderRadius:16, padding:'52px 24px', textAlign:'center',
+          cursor: isFull ? 'not-allowed' : 'pointer',
+          transition:'all 0.2s', boxShadow:shadow,
+          pointerEvents: isFull ? 'none' : 'auto',
+        }}>
+          <input {...getInputProps()} disabled={isFull} />
           {uploading ? (
             <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14 }}>
               <div style={{ width:48, height:48, borderRadius:'50%', border:`3px solid ${accent}`, borderTopColor:'transparent', animation:'spin 0.9s linear infinite' }} />
               <p style={{ color:textPrimary, fontWeight:600 }}>Encrypting and uploading…</p>
+            </div>
+          ) : isFull ? (
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
+              <div style={{ width:56, height:56, borderRadius:16, background:'rgba(239,68,68,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:28 }}>🔒</div>
+              <p style={{ fontWeight:600, color:'#ef4444', fontSize:15 }}>Storage full</p>
+              <p style={{ fontSize:13, color:textSecondary }}>Delete files to free up space</p>
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
@@ -365,10 +423,9 @@ export default function Dashboard() {
     // My Files
     return (
       <div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))', gap:12, marginBottom:24 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))', gap:12, marginBottom:16 }}>
           {[
             { label:'Encrypted Files', value: String(files.length) },
-            { label:'Total Stored',    value: formatSize(totalSize) },
             { label:'Encryption',      value: 'AES-256-GCM' },
           ].map(({ label, value }) => (
             <div key={label} style={{ background:card, border:`1px solid ${cardBorder}`, borderRadius:16, padding:'16px 18px', boxShadow:shadow }}>
@@ -377,6 +434,8 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
+
+        <StorageBar />
 
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14, flexWrap:'wrap', gap:10 }}>
           <h2 style={{ fontSize:16, fontWeight:700, color:textPrimary }}>Your Files</h2>
@@ -449,7 +508,6 @@ export default function Dashboard() {
         ::-webkit-scrollbar-thumb { background:${d?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.1)'}; border-radius:99px; }
       `}</style>
 
-      {/* Mobile overlay — tap outside sidebar to close */}
       {sidebarOpen && isMobile && (
         <div onClick={() => setSidebarOpen(false)} style={{ position:'fixed', inset:0, zIndex:150, background:'rgba(0,0,0,0.5)', backdropFilter:'blur(2px)', animation:'fadeIn 0.2s ease' }} />
       )}
@@ -468,7 +526,6 @@ export default function Dashboard() {
         boxShadow: isMobile && sidebarOpen ? '4px 0 24px rgba(0,0,0,0.3)' : 'none',
       }}>
         <div style={{ width:240, height:'100%', display:'flex', flexDirection:'column' }}>
-          {/* Logo + close */}
           <div style={{ padding:'18px 16px 14px', borderBottom:`1px solid ${sidebarBorder}`, display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
             <img src="/logo.png" alt="Veilora" style={{ height:52, width:'auto', display:'block', filter: d ? 'brightness(0) invert(1)' : 'none' }} />
             <button onClick={() => setSidebarOpen(false)} style={{ width:32, height:32, borderRadius:9, border:'none', background:hoverBg, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:textSecondary, flexShrink:0 }}>
@@ -476,7 +533,6 @@ export default function Dashboard() {
             </button>
           </div>
 
-          {/* Nav */}
           <nav style={{ flex:1, padding:'14px 10px', display:'flex', flexDirection:'column', gap:3, overflowY:'auto' }}>
             {NAV.map(({ id, label, icon }) => {
               const active = activeNav === id
@@ -498,16 +554,32 @@ export default function Dashboard() {
             })}
           </nav>
 
-          {/* Bottom */}
-          <div style={{ padding:'12px 10px', borderTop:`1px solid ${sidebarBorder}`, flexShrink:0 }}>
+          {/* Sidebar storage mini-bar */}
+          <div style={{ padding:'12px 16px', borderTop:`1px solid ${sidebarBorder}` }}>
+            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+              <span style={{ fontSize:11, color:textSecondary, fontWeight:600 }}>Storage</span>
+              <span style={{ fontSize:11, color: isFull ? '#ef4444' : isNearLimit ? '#f59e0b' : textSecondary, fontWeight:600 }}>
+                {formatSize(totalSize)} / 40 MB
+              </span>
+            </div>
+            <div style={{ height:4, background:inputBg, borderRadius:999, overflow:'hidden' }}>
+              <div style={{
+                height:'100%', borderRadius:999,
+                width:`${usedPct}%`,
+                background: isFull ? '#ef4444' : isNearLimit ? '#f59e0b' : accent,
+                transition:'width 0.4s ease',
+              }}/>
+            </div>
+          </div>
 
+          <div style={{ padding:'0 10px 12px', flexShrink:0 }}>
             <button onClick={() => supabase.auth.signOut()} style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'10px 14px', borderRadius:11, border:'none', cursor:'pointer', background:'transparent', color:textSecondary, fontSize:14, fontWeight:500, fontFamily:"'DM Sans',sans-serif", transition:'background 0.15s' }}
               onMouseEnter={e => { e.currentTarget.style.background = d?'rgba(239,68,68,0.08)':'#fef2f2'; e.currentTarget.style.color='#ef4444' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = textSecondary }}>
               {Icon.signout} Sign out
             </button>
             {user && (
-              <div style={{ marginTop:10, padding:'10px 14px', borderRadius:11, background:hoverBg, display:'flex', alignItems:'center', gap:10 }}>
+              <div style={{ marginTop:6, padding:'10px 14px', borderRadius:11, background:hoverBg, display:'flex', alignItems:'center', gap:10 }}>
                 <div style={{ width:30, height:30, borderRadius:'50%', background:accentLight, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:accent, flexShrink:0 }}>
                   {(user.email?.[0] || '?').toUpperCase()}
                 </div>
@@ -520,15 +592,12 @@ export default function Dashboard() {
 
       {/* ── Main ── */}
       <main style={{ flex:1, minWidth:0, overflowY:'auto', padding: isMobile ? '24px 16px' : '32px 40px' }}>
-        {/* Top bar */}
         <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:28 }}>
-          {/* Hamburger */}
           <button onClick={() => setSidebarOpen(o => !o)} style={{ width:38, height:38, borderRadius:10, border:`1px solid ${cardBorder}`, background:card, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:textSecondary, flexShrink:0, boxShadow:shadow, transition:'all 0.15s' }}
             onMouseEnter={e => e.currentTarget.style.background = hoverBg}
             onMouseLeave={e => e.currentTarget.style.background = card}>
             {Icon.menu}
           </button>
-          {/* Back to Home — keeps session alive */}
           <button onClick={() => navigate('/')} title="Back to home"
             style={{ width:38, height:38, borderRadius:10, border:`1px solid ${cardBorder}`, background:card, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:textSecondary, flexShrink:0, boxShadow:shadow, transition:'all 0.15s' }}
             onMouseEnter={e => { e.currentTarget.style.background = hoverBg; e.currentTarget.style.color = textPrimary; e.currentTarget.style.transform='translateX(-2px)' }}
@@ -546,7 +615,6 @@ export default function Dashboard() {
         {renderContent()}
       </main>
 
-      {/* ── Modals ── */}
       {downloadModal && (
         <DownloadModal file={downloadModal} tokens={tokens}
           onConfirm={pw => handleDownload(downloadModal, pw)}

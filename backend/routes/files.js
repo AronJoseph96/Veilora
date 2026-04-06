@@ -5,9 +5,28 @@ import { v4 as uuidv4 } from 'uuid'
 
 const router = express.Router()
 
+const QUOTA = 40 * 1024 * 1024 // 40 MB
+
 router.post('/upload-url', requireAuth, async (req, res) => {
   const { name, size, mimeType, iv, salt } = req.body
   if (!name || !iv || !salt) return res.status(400).json({ error: 'Missing fields' })
+
+  const { data: usage, error: usageErr } = await supabase
+    .from('files')
+    .select('size')
+    .eq('owner_id', req.user.id)
+
+  if (usageErr) return res.status(500).json({ error: usageErr.message })
+
+  const totalUsed = usage.reduce((sum, f) => sum + (f.size || 0), 0)
+
+  if (totalUsed + (size || 0) > QUOTA) {
+    return res.status(403).json({
+      error: 'Storage quota exceeded. You have a 40 MB free limit.',
+      used: totalUsed,
+      quota: QUOTA,
+    })
+  }
 
   const storagePath = `${req.user.id}/${uuidv4()}`
 
