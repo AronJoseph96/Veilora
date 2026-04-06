@@ -201,6 +201,8 @@ export default function Dashboard() {
 
   const onDrop = useCallback(async (accepted) => {
     if (!password) return toast.error('Enter an encryption password before uploading.')
+    const strength = getPasswordStrength(password)
+    if (strength.level < 2) return toast.error('Password is too weak — use at least a "Good" strength password to encrypt your file.')
     const file = accepted[0]
     setUploading(true)
     try {
@@ -382,14 +384,14 @@ export default function Dashboard() {
         </div>
 
         <div {...getRootProps()} style={{
-          background: isFull ? (d ? 'rgba(239,68,68,0.05)' : '#fef2f2') : isDragActive ? accentLight : card,
-          border:`2px dashed ${isFull ? '#ef4444' : isDragActive ? accent : cardBorder}`,
+          background: isFull ? (d ? 'rgba(239,68,68,0.05)' : '#fef2f2') : !password || getPasswordStrength(password).level < 2 ? (d ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)') : isDragActive ? accentLight : card,
+          border:`2px dashed ${isFull ? '#ef4444' : !password || getPasswordStrength(password).level < 2 ? (d ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : isDragActive ? accent : cardBorder}`,
           borderRadius:16, padding:'52px 24px', textAlign:'center',
-          cursor: isFull ? 'not-allowed' : 'pointer',
+          cursor: isFull || !password || getPasswordStrength(password).level < 2 ? 'not-allowed' : 'pointer',
           transition:'all 0.2s', boxShadow:shadow,
-          pointerEvents: isFull ? 'none' : 'auto',
+          opacity: !password || getPasswordStrength(password).level < 2 ? 0.5 : 1,
         }}>
-          <input {...getInputProps()} disabled={isFull} />
+          <input {...getInputProps()} disabled={isFull || !password || getPasswordStrength(password).level < 2} />
           {uploading ? (
             <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14 }}>
               <div style={{ width:48, height:48, borderRadius:'50%', border:`3px solid ${accent}`, borderTopColor:'transparent', animation:'spin 0.9s linear infinite' }} />
@@ -400,6 +402,12 @@ export default function Dashboard() {
               <div style={{ width:56, height:56, borderRadius:16, background:'rgba(239,68,68,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:28 }}>🔒</div>
               <p style={{ fontWeight:600, color:'#ef4444', fontSize:15 }}>Storage full</p>
               <p style={{ fontSize:13, color:textSecondary }}>Delete files to free up space</p>
+            </div>
+          ) : !password || getPasswordStrength(password).level < 2 ? (
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
+              <div style={{ width:56, height:56, borderRadius:16, background:accentLight, display:'flex', alignItems:'center', justifyContent:'center', color:textSecondary }}>{Icon.lock}</div>
+              <p style={{ fontWeight:600, color:textSecondary, fontSize:15 }}>Set a strong password first</p>
+              <p style={{ fontSize:13, color:textMuted }}>Password must be at least "Good" strength to upload</p>
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
