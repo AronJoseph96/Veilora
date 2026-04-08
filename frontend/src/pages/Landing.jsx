@@ -409,8 +409,8 @@ export default function Landing() {
                   { label:'Get Started', action:() => session ? navigate('/dashboard') : navigate('/login') },
                 ]},
                 { title:'Legal', links:[
-                  { label:'Privacy Policy', href:'#' },
-                  { label:'Terms of Service', href:'#' },
+                  { label:'Privacy Policy', action: () => navigate('/privacy') },
+                  { label:'Terms of Service', action: () => navigate('/terms') },
                 ]},
               ].map(({ title, links }) => (
                 <div key={title}>
