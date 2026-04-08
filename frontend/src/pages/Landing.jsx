@@ -13,7 +13,9 @@ export default function Landing() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s)
       // Only redirect on fresh sign-in, not on every page load
-      if (event === 'SIGNED_IN') navigate('/dashboard')
+      if (event === 'SIGNED_IN') {
+        setTimeout(() => navigate('/dashboard'), 0)
+      }
     })
     return () => subscription.unsubscribe()
   }, [navigate])
