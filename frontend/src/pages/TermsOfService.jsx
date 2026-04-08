@@ -241,7 +241,6 @@ export default function TermsOfService() {
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '16px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button className="back-btn" onClick={() => navigate('/')}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-            Back to Veilora
           </button>
           <button
             onClick={() => navigate('/privacy')}
@@ -249,7 +248,7 @@ export default function TermsOfService() {
             onMouseEnter={e => e.target.style.color = '#fbbf24'}
             onMouseLeave={e => e.target.style.color = '#4a4f6a'}
           >
-            Privacy Policy →
+            Privacy Policy
           </button>
         </div>
       </div>
