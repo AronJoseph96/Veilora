@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard'
 import SharedFile from './pages/SharedFile'
 import Landing from './pages/Landing'
 import LoadingScreen from './pages/LoadingScreen'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsOfService from './pages/TermsOfService'
 
 export default function App() {
   const [session, setSession] = useState(undefined)   // undefined = not yet checked
@@ -47,6 +49,8 @@ export default function App() {
         <Route path="/login" element={!session ? <Login /> : <Navigate to="/dashboard" />} />
         <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/login" />} />
         <Route path="/share/:token" element={<SharedFile />} />
+        <Route path="/privacy"   element={<PrivacyPolicy />} />
+        <Route path="/terms"     element={<TermsOfService />} />
       </Routes>
     </BrowserRouter>
   )
