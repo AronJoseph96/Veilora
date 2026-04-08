@@ -4,7 +4,32 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+
+    <!-- Primary meta -->
+    <title>Veilora — Zero-Knowledge Encrypted File Sharing</title>
+    <meta name="description" content="Share files with zero compromise. Veilora encrypts your files in your browser before upload using AES-256-GCM. We never see your data. Ever." />
+    <meta name="author" content="Veilora" />
+    <meta name="theme-color" content="#0a0d1a" />
+
+    <!-- Open Graph (link previews on WhatsApp, Slack, etc.) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Veilora — Zero-Knowledge Encrypted File Sharing" />
+    <meta property="og:description" content="Share files with zero compromise. Browser-side AES-256-GCM encryption. Your password never leaves your device." />
+    <meta property="og:image" content="/logo.png" />
+    <meta property="og:url" content="https://veilora.vercel.app" />
+    <meta property="og:site_name" content="Veilora" />
+
+    <!-- Twitter card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Veilora — Zero-Knowledge Encrypted File Sharing" />
+    <meta name="twitter:description" content="Share files with zero compromise. Browser-side AES-256-GCM encryption. Your password never leaves your device." />
+    <meta name="twitter:image" content="/logo.png" />
+
+    <!-- Security headers via meta (belt-and-suspenders alongside server headers) -->
+    <meta name="referrer" content="no-referrer" />
+
+    <!-- No indexing for dashboard/share routes — handled by robots.txt too -->
+    <meta name="robots" content="index, follow" />
   </head>
   <body>
     <div id="root"></div>

@@ -136,6 +136,15 @@ function isTempMail(email) {
   return domain ? TEMP_MAIL_DOMAINS.has(domain) : false
 }
 
+function maskEmail(email) {
+  if (!email) return ''
+  const [local, domain] = email.split('@')
+  if (!domain) return email
+  const visible = local.slice(0, 1)
+  const masked = local.length > 2 ? '*'.repeat(Math.min(local.length - 1, 4)) : '*'
+  return `${visible}${masked}@${domain}`
+}
+
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -417,7 +426,7 @@ export default function Login() {
             </div>
             <h2 style={{ fontSize: 20, fontWeight: 700, color: textPrimary, marginBottom: 10, fontFamily: "'DM Serif Display', serif" }}>Check your email</h2>
             <p style={{ fontSize: 14, color: textSecondary, lineHeight: 1.6, marginBottom: 20 }}>
-              We sent a verification link to <strong style={{ color: textPrimary }}>{email}</strong>.<br/>
+              We sent a verification link to <strong style={{ color: textPrimary }}>{maskEmail(email)}</strong>.<br/>
               Click the link to activate your account.
             </p>
             <p style={{ fontSize: 12, color: dark ? '#38384a' : '#c0bbb4' }}>

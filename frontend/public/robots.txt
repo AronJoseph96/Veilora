@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Allow: /login
+
+# Block private/app routes from indexing
+Disallow: /dashboard
+Disallow: /share/
+
+Sitemap: https://veilora.vercel.app/sitemap.xml
